@@ -1,0 +1,7 @@
+#set term postscript color enhanced font 'Helvetica,20'
+#set output 'disk2_Jmode_nl_stork_lagrangian.ps'
+set key r b
+set xrange [0:1]
+set xlabel 'm/m_c'
+set ylabel '{/Symbol G}/{/Symbol g}_o'
+plot 'fort.68' u 2:3 w lp t "{/Symbol G}_L"

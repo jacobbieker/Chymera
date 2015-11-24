@@ -1,0 +1,65 @@
+
+c************************************************************************
+c************************************************************************
+c
+c    Calculate the gravitational torque
+c
+       xmass=0.0
+       do j=2,jmax1
+         torkj=0.0
+         d2x=(r(j+1)**2-r(j)**2)*(rhf(j+1)-rhf(j))
+         d3x=(2.0*3.141592654/lmax)*d2x
+         dmass=0.0
+         do k=2,kmax1
+           do l=1,lmax
+             lp1=l+1
+             if(lp1.gt.lmax) lp1=1
+             gravity=-rho(j,k,l)*(phi(j,k,lp1)-phi(j,k,l))*d2x
+             torkj=torkj+gravity
+             xmass=xmass+rho(j,k,l)*d3x
+             dmass=dmass+rho(j,k,l)*d3x
+           end do
+         end do
+         write(63,163) r(j),torkj,xmass,dmass
+ 163     format(1p4e12.4)
+       end do
+c
+c  output the Virial: 2T + W (actually T/W)
+c
+      do j=2,jmax
+        d2x=2.0*(rhf(3)-rhf(2))**2*rhf(j)
+        d3x=(2.0*acos(-1.0d0)/lmax)*d2x
+        do k=2,2
+          xm1=0.0
+          xh2=0.0
+          do l=1,lmax
+            xm1=xm1+rho(j,k,l)
+            xh2=xh2+a(j,k,l)
+          end do
+          xm1=xm1/lmax
+          xh2=xh2/lmax
+          cp=xh2**2/2.0/xm1/rhf(j)**2
+          frame=xh2/xm1/rhf(j)
+          do l=1,lmax
+            vr=u(j,k,l)
+            vz=w(j,k,l)
+            vphi=omega(j,k,l)*rhf(j)
+            vxz=0.5*rho(j,k,l)*(vr**2+vz**2)
+            rot=0.5*rho(j,k,l)*vphi**2
+            rotf=vphi-frame
+            rot1=0.5*rho(j,k,l)*rotf**2
+            uint=eps(j,k,l)
+            gpot=phi(j,k,l)
+            gpe=0.5*rho(j,k,l)*phi(j,k,l)
+            vt=-(vxz+rot+uint)/gpe
+            vt1=-(vxz+rot1+uint)/gpe
+            write(73,173) j,l,vt,vx,vz,vphi,uint,gpot,vt1
+            write(74,173) j,l,rho(j,k,l),rho(j,k,l)*phi(j,k,l),cp
+ 173        format(2i5,1p7e10.2)
+          end do
+        end do
+      end do
+c
+c
+c************************************************************************
+c************************************************************************
