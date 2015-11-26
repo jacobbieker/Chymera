@@ -224,6 +224,9 @@ c
          sound=SQRT(gamma*(DEN**(gamma-1.d0)))
          konst=one
 
+c     Hardcoded values for the peliminary Rossby Wave Instability
+c     simulations: so pressure (p[j,k,l], denny[j,k], anggy[j,k], gamma)
+
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(LP,j,k,l,konst)                        &
 !$OMP&  SHARED(gamma,den,a1newz)
 !$OMP DO SCHEDULE(STATIC)
