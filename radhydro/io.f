@@ -176,6 +176,7 @@ c
          
 !         READ(2,1617) DENNY
 !         READ(2,1617) ANGGY
+c         Modified for Rossby-Wave Instability Hardcoding
  1617    FORMAT(8(1PE22.15,2X))
          READ(2,*) DENNY
          READ(2,*) ANGGY
@@ -225,7 +226,7 @@ c
          konst=one
 
 c     Hardcoded values for the peliminary Rossby Wave Instability
-c     simulations: so pressure (p[j,k,l], denny[j,k], anggy[j,k], gamma)
+c     simulations: denny[j,k], anggy[j,k])
 
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(LP,j,k,l,konst)                        &
 !$OMP&  SHARED(gamma,den,a1newz)
