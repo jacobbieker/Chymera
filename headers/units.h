@@ -1,10 +1,11 @@
 !    The following units: Mstar, Rdiskau, Tstar are model
 !    dependent.  Must be set by the user.   
 !    The rest are astronomical units.
+!    For the Rossby Wave Instability, mass of star should be 1
 
       REAL*8 Mstar,Rstar,Rdiskau,Tstar,gridlim,phylim
       REAL*8 Msuncgs,Rsuncgs,AUcgs,sigmacgs,Gcgs,bkmpcgs
-      PARAMETER (Mstar=0.5d0,Rstar=2d0,Rdiskau=40d0,Tstar=4d3)
+      PARAMETER (Mstar=1d0,Rstar=2d0,Rdiskau=40d0,Tstar=4d3)
       PARAMETER (Msuncgs=1.989d33, Rsuncgs=6.96d10, AUcgs=1.496d13)
       PARAMETER (sigmacgs=5.670d-5, Gcgs=6.672d-8, phylim=1.d-4) 
       PARAMETER (bkmpcgs=8.254d7,gridlim=1.d-12)

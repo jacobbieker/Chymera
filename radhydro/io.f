@@ -361,10 +361,6 @@ c...  JMAX, KMAX, LMAX, radial, vertical, azimuthal grid size, respecitvely
 c...  KMAX2 and JMAX2 are JMAX+2, etc. with cell 1 and JMAX2 are ghost cells
 c...  Defined in hydroparam.h
 
-            if (ios /= 1) then 
-               print *, "Last set of data missing. Check input."
-            endif
-
             tmassini = tmass
             tmassadd = zero
             tmassout = zero
