@@ -14,7 +14,7 @@
 
 !  High resolution problem.
       parameter (jmax=256, jmax1=jmax+1, jmax2=jmax+2)
-      parameter (kmax=128, kmax1=kmax+1, kmax2=kmax+2)
+      parameter (kmax=64, kmax1=kmax+1, kmax2=kmax+2)
       parameter (lmax=256, lmax2=lmax/2)
 !
       parameter(pot3jmax=256,pot3jmax1=pot3jmax+1,pot3jmax2=pot3jmax+2)
