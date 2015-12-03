@@ -357,19 +357,6 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
-            OPEN(UNIT=7,FILE='fort.7',FORM='UNFORMATTED',STATUS='OLD')
-            WRITE(6,10200) ITYPE,'.'
-            read(7) S(1:JMAX2,1:KMAX2,1:8)
-            read(7) T(1:JMAX2,1:KMAX2,1:8)
-            read(7) A(1:JMAX2,1:KMAX2,1:8)
-            read(7) RHO(1:JMAX2,1:KMAX2,1:8)
-            read(7) EPS(1:JMAX2,1:KMAX2,1:8)
-            read(7)ROF3N,ZOF3N,DELT,TIME,ELOST,DEN,SOUND,
-     &        JREQ,OMMAX
-            read(7,IOSTAT=ios) tmassini,tmass,tmassadd,
-     &         tmassout,tmassacc,totcool,totdflux,totheat,totirr,etotfl,
-     &         eflufftot  !ACB
-
             if (ios /= 1) then 
                print *, "Last set of data missing. Check input."
             endif
@@ -405,7 +392,6 @@ c...  Standard read in .........................................................
             dencen=den
             rholmt=dencen*gridlim
             epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
-            CLOSE(7)
 
          END IF
 
