@@ -353,6 +353,10 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
+c...  JMAX, KMAX, LMAX, radial, vertical, azimuthal grid size, respecitvely
+c...  KMAX2 and JMAX2 are JMAX+2, etc. with cell 1 and JMAX2 are ghost cells
+c...  Defined in hydroparam.h
+
             tmassini = tmass
             tmassadd = zero
             tmassout = zero
