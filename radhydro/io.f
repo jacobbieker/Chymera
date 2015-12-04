@@ -369,6 +369,7 @@ c...  Defined in hydroparam.h
             eflufftot= zero
             time     = zero
 
+c...  The loops where we will fill in the array based off the Lovelace paper
 !$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
       do L = 1, LMAX
        do K = 1, KMAX2
