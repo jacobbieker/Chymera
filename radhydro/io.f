@@ -353,9 +353,22 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
-c...  JMAX, KMAX, LMAX, radial, vertical, azimuthal grid size, respecitvely
-c...  KMAX2 and JMAX2 are JMAX+2, etc. with cell 1 and JMAX2 are ghost cells
-c...  Defined in hydroparam.h
+            OPEN(UNIT=7,FILE='fort.7',FORM='UNFORMATTED',STATUS='OLD')
+            WRITE(6,10200) ITYPE,'.'
+            read(7) S(1:JMAX2,1:KMAX2,1:8)
+            read(7) T(1:JMAX2,1:KMAX2,1:8)
+            read(7) A(1:JMAX2,1:KMAX2,1:8)
+            read(7) RHO(1:JMAX2,1:KMAX2,1:8)
+            read(7) EPS(1:JMAX2,1:KMAX2,1:8)
+            read(7)ROF3N,ZOF3N,DELT,TIME,ELOST,DEN,SOUND,
+     &        JREQ,OMMAX
+            read(7,IOSTAT=ios) tmassini,tmass,tmassadd,
+     &         tmassout,tmassacc,totcool,totdflux,totheat,totirr,etotfl,
+     &         eflufftot  !ACB
+
+            if (ios /= 1) then 
+               print *, "Last set of data missing. Check input."
+            endif
 
             tmassini = tmass
             tmassadd = zero
@@ -368,8 +381,22 @@ c...  Defined in hydroparam.h
             etotfl   = zero
             eflufftot= zero
             time     = zero
-
+c FIND: START EDIT HERE
 !$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
+c---------------------------------------------
+c Filling array with Rossby-Wave model
+c G=gravitational constant, 1? 
+c W= width of the density bump, .05?
+c pi constant? if not, add
+c
+c velocity(radius) : SQRT(r*2.1*G+G/r) 
+c 
+c density(radius, z) : ((1/SQRT(r))(1 + .25EXP(-(r*r)/(2W*W)))/(SQRT(2*pi)(.7r)))EXP(-(z*z/(4.2(r*r)))
+c 
+c
+c
+c
+c---------------------------------------------
       do L = 1, LMAX
        do K = 1, KMAX2
         do J = 1, JMAX2
@@ -388,6 +415,7 @@ c...  Defined in hydroparam.h
             dencen=den
             rholmt=dencen*gridlim
             epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
+            CLOSE(7)
 
          END IF
 
