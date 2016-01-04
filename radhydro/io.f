@@ -381,8 +381,22 @@ c...  Standard read in .........................................................
             etotfl   = zero
             eflufftot= zero
             time     = zero
-
+c FIND: START EDIT HERE
 !$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
+c---------------------------------------------
+c Filling array with Rossby-Wave model
+c G=gravitational constant, 1? 
+c W= width of the density bump, .05?
+c pi constant? if not, add
+c
+c velocity(radius) : SQRT(r*2.1*G+G/r) 
+c 
+c density(radius, z) : ((1/SQRT(r))(1 + .25EXP(-(r*r)/(2W*W)))/(SQRT(2*pi)(.7r)))EXP(-(z*z/(4.2(r*r)))
+c 
+c
+c
+c
+c---------------------------------------------
       do L = 1, LMAX
        do K = 1, KMAX2
         do J = 1, JMAX2
