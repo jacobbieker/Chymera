@@ -381,12 +381,10 @@ c...  Standard read in .........................................................
             etotfl   = zero
             eflufftot= zero
             time     = zero
-<<<<<<< HEAD
 
 c...  The loops where we will fill in the array based off the Lovelace paper
 =======
 c FIND: START EDIT HERE
->>>>>>> refs/remotes/origin/master
 !$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
 c---------------------------------------------
 c Filling array with Rossby-Wave model
@@ -408,7 +406,10 @@ c---------------------------------------------
           s(J,K,L) = s(J,K,1)            
           a(J,K,L) = a(J,K,1)            
           t(J,K,L) = t(J,K,1)            
-          rho(J,K,L) = rho(J,K,1)            
+          rho(J,K,L) = rho(J,K,1)
+c Get the density of each point in the array, at radius J
+          rho(J,K,L) = ((1/SQRT(J))(1 + .25EXP(-(J*J)/(2W*W))) &
+          /(SQRT(2*pi)(.7J)))EXP(-(z*z/(4.2(J*J)))
           eps(J,K,L) = eps(J,K,1)            
         enddo
        enddo
