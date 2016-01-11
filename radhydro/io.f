@@ -374,9 +374,10 @@ c...  Standard read in .........................................................
 !         Create the DENNY and ANGGY grids here
           do k=2,kmax1
              do j=2,jmax1
-              DENNY(j,k) = ((1/SQRT(j))(1 + .25EXP(-(j*j)/(2W*W)))/ &
+c             0.05 is the W, change if need be, in ANGGY's 1 is G
+              DENNY(j,k) = ((1/SQRT(j))(1 + .25EXP(-(j*j)/(2*0.05*0.05)))/ &
                (SQRT(2*pi)(.7j)))EXP(-(k*k/(4.2(j*j)))
-              ANGGY(j,k) = SQRT(j*2.1*G+G/j)
+              ANGGY(j,k) = SQRT(j*2.1*1+1/j) 
              enddo
           enddo
 !         READ(2,*) DENNY
