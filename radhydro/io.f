@@ -392,10 +392,10 @@ c
 c velocity(radius) : SQRT(r*2.1*G+G/r) 
 c 
 c density(radius, z) : ((1/SQRT(r))(1 + .25EXP(-(r*r)/(2W*W)))/(SQRT(2*pi)(.7r)))EXP(-(z*z/(4.2(r*r)))
-c 
-c
-c
-c
+c  J at dr go to ITYPE 7
+c just read first numbers, not read ANGGY or DENNY, two equations above do that
+c thene it should work
+c L = 1 because it is rotating the grid made by hscf.f 
 c---------------------------------------------
       do L = 1, LMAX
        do K = 1, KMAX2
