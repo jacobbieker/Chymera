@@ -371,6 +371,14 @@ c...  Standard read in .........................................................
 !         READ(2,1617) DENNY
 !         READ(2,1617) ANGGY
  1617    FORMAT(8(1PE22.15,2X))
+!         Create the DENNY and ANGGY grids here
+          do k=2,kmax1
+             do j=2,jmax1
+              DENNY(j,k) = ((1/SQRT(j))(1 + .25EXP(-(j*j)/(2W*W)))/ &
+               (SQRT(2*pi)(.7j)))EXP(-(k*k/(4.2(j*j)))
+              ANGGY(j,k) = SQRT(j*2.1*G+G/j)
+             enddo
+          enddo
 !         READ(2,*) DENNY
 !         READ(2,*) ANGGY
          CLOSE(2)
@@ -534,7 +542,6 @@ c              OMEGA(J,1,L) = OMEGA(J,2,L)
 
       END IF
 c FIND: START EDIT HERE
-!$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
 c---------------------------------------------
 c Filling array with Rossby-Wave model
 c G=gravitational constant, 1? 
@@ -549,28 +556,8 @@ c just read first numbers, not read ANGGY or DENNY, two equations above do that
 c thene it should work
 c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
-      do L = 1, LMAX
-       do K = 1, KMAX2
-        do J = 1, JMAX2
-          s(J,K,L) = s(J,K,1)            
-          a(J,K,L) = a(J,K,1)            
-          t(J,K,L) = t(J,K,1)            
-          rho(J,K,L) = rho(J,K,1)            
-          eps(J,K,L) = eps(J,K,1)            
-        enddo
-       enddo
-      enddo
-!$OMP END PARALLEL DO
 
-            ommax=omega(jmin,2,1)
-            ommax=max(1.d-14,ommax)     !dkb - temp fix for underflow problem
-            dencen=den
-            rholmt=dencen*gridlim
-            epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
-            CLOSE(7)
-
-         END IF
-
+        END IF
 
          IF (ITYPE.EQ.1.OR.ITYPE.EQ.98) THEN
             
