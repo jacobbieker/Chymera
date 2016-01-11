@@ -353,34 +353,186 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
-            OPEN(UNIT=7,FILE='fort.7',FORM='UNFORMATTED',STATUS='OLD')
-            WRITE(6,10200) ITYPE,'.'
-            read(7) S(1:JMAX2,1:KMAX2,1:8)
-            read(7) T(1:JMAX2,1:KMAX2,1:8)
-            read(7) A(1:JMAX2,1:KMAX2,1:8)
-            read(7) RHO(1:JMAX2,1:KMAX2,1:8)
-            read(7) EPS(1:JMAX2,1:KMAX2,1:8)
-            read(7)ROF3N,ZOF3N,DELT,TIME,ELOST,DEN,SOUND,
-     &        JREQ,OMMAX
-            read(7,IOSTAT=ios) tmassini,tmass,tmassadd,
-     &         tmassout,tmassacc,totcool,totdflux,totheat,totirr,etotfl,
-     &         eflufftot  !ACB
+            O10100    FORMAT(/,'Reading model type',I4,':  Axisymmetric Hachisu,',a)
 
-            if (ios /= 1) then 
-               print *, "Last set of data missing. Check input."
-            endif
+         OPEN(UNIT=2,FILE='fort.2',STATUS='OLD')    
 
-            tmassini = tmass
-            tmassadd = zero
-            tmassout = zero
-            tmassacc = zero
-            totcool  = zero
-            totdflux = zero
-            totheat  = zero
-            totirr   = zero
-            etotfl   = zero
-            eflufftot= zero
-            time     = zero
+!         READ(2,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
+!     &        A1NEWZ,JREQ,KZPOL
+
+         READ(2,*)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
+     &        A1NEWZ,JREQ,KZPOL
+
+ 1685    FORMAT(3X,1PE22.15,2X,8(1PE22.15,2X),2I4)
+
+         write(*,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,
+     &        ROF3N,ZOF3N,A1NEWZ,JREQ,KZPOL
+         
+!         READ(2,1617) DENNY
+!         READ(2,1617) ANGGY
+ 1617    FORMAT(8(1PE22.15,2X))
+!         READ(2,*) DENNY
+!         READ(2,*) ANGGY
+         CLOSE(2)
+
+         tmass=0.0
+         ajtot=0.0
+         tm0=tmass
+         aj0=ajtot
+         do j=2,jmax1
+            do k=2,kmax1
+               do l=1,lmax
+                  volume=four*pi/lmax*(j-2)*rof3n**3
+                  tmass=tmass+denny(j,k)*volume
+                  ajtot=ajtot+anggy(j,k)*denny(j,k)*volume
+               end do
+            end do
+            rj=(j-2)*rof3n
+            tm0=tmass
+            aj0=ajtot
+         end do
+         write(61,*) tmass,ajtot
+ 61      format(1p5e12.4)
+
+         tmass=tmass
+         tmassini = tmass
+         tmassadd = zero
+         tmassout = zero
+         tmassacc = zero
+         totcool  = zero
+         totdflux = zero
+         totheat  = zero
+         totirr   = zero
+         etotfl   = zero
+         eflufftot= zero
+         time     = zero
+
+         write(6,*) tmass,tmsasini,tmassadd,tmassout,tmassacc
+         write(6,*) totcool,totdflux,totheat,totirr,etotfl,eflufftot
+
+         den=dencen
+         rholmt=dencen*gridlim
+         epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
+         dumlmt=epslmt**(1.d0/gamma)
+         OMMAX=OMCEN
+         sound=SQRT(gamma*(DEN**(gamma-1.d0)))
+         konst=one
+
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(LP,j,k,l,konst)                        &
+!$OMP&  SHARED(gamma,den,a1newz)
+!$OMP DO SCHEDULE(STATIC)
+         do l=1,lmax
+            do k=2,kmax1
+               do j=2,jmax1
+                  rho(j,k,l)=denny(j,k)
+                  jn(j,k,L)=anggy(j,k)
+                  if(rho(j,k,l).lt.gridlim*den) then
+                    rho(j,k,l)=gridlim*den
+                  endif
+                  s(j,k,l)=0.d0
+                  t(j,k,l)=0.d0
+                  a(J,K,L)=rho(j,k,l)*jn(j,k,l)
+                  u(j,k,l)=0.d0
+                  w(j,k,l)=0.d0
+c..... if(j.le.KZPOL) then
+                    konst=one
+c...... else
+c....... konst=A1NEWZ
+c....... endif
+                  p(j,k,l)=konst*rho(j,k,l)**gamma
+                  eps(j,k,l)=p(j,k,l)/(gamma-1.d0)
+               end do
+            end do
+         end do
+!$OMP END DO NOWAIT
+
+C....Set quantities on outside boundary.
+!$OMP DO SCHEDULE(STATIC)
+         do l=1,lmax
+           do k=2,kmax1
+             jn(jmax2,k,l)  = jn(jmax1,k,l)
+             s(jmax2,k,l)   = s(jmax1,k,l)
+             t(jmax2,k,l)   = t(jmax1,k,l)
+             a(jmax2,k,l)   = a(jmax1,k,l)
+             u(jmax2,k,l)   = u(jmax1,k,l)
+c            omega(jmax2,k,l)= omega(jmax1,k,l)
+             w(jmax2,k,l)   = w(jmax1,k,l)
+             rho(jmax2,k,l) = rho(jmax1,k,l)
+             p(jmax2,k,l)   = p(jmax1,k,l)
+             eps(jmax2,k,l) = eps(jmax1,k,l)
+           enddo
+         enddo
+!$OMP ENDDO NOWAIT
+!$OMP DO SCHEDULE(STATIC)
+         do l=1,lmax
+           do j=2,jmax2
+             jn(j,kmax2,l)  = jn(j,kmax1,l)
+             s(j,kmax2,l)   = p(j,kmax1,l)
+             t(j,kmax2,l)   = t(j,kmax1,l)
+             a(j,kmax2,l)   = a(j,kmax1,l)
+             u(j,kmax2,l)   = u(j,kmax1,l)
+c            omega(j,kmax2,l)= omega(j,kmax1,l)
+             w(j,kmax2,l)   = w(j,kmax1,l)
+             rho(j,kmax2,l) = rho(j,kmax1,l)
+             p(j,kmax2,l)   = p(j,kmax1,l)
+             eps(j,kmax2,l) = eps(j,kmax1,l)
+           enddo
+         enddo
+!$OMP ENDDO
+
+C....Set quantities around z-axis.
+!$OMP DO SCHEDULE(STATIC)
+         DO L=1,LMAX
+            LP=1+MOD(L-1+LMAX/2,LMAX)
+            DO K=2,KMAX2
+               JN(1,K,L)  = JN(2,K,LP)
+               S(1,K,L)   = -S(3,K,LP)
+               T(1,K,L)   = T(2,K,LP)
+               A(1,K,L)   = A(2,K,LP)
+               U(1,K,L)   = -U(3,K,LP)
+c              OMEGA(1,K,L) = OMEGA(2,K,LP)
+               W(1,K,L)   = W(2,K,LP)
+               RHO(1,K,L) = RHO(2,K,LP)
+               P(1,K,L)   = P(2,K,LP)
+               EPS(1,K,L) = EPS(2,K,LP)
+            ENDDO
+         ENDDO
+!$OMP ENDDO NOWAIT
+
+C....Set quantities below the equatorial plane.
+!$OMP DO SCHEDULE(STATIC)
+         DO L=1,LMAX
+            DO J=1,JMAX2
+               JN(J,1,L)  = JN(J,2,L)
+               S(J,1,L)   = S(J,2,L)
+               T(J,1,L)   = -T(J,3,L)
+               A(J,1,L)   = A(J,2,L)
+               U(J,1,L)   = U(J,2,L)
+               W(J,1,L)   = -W(J,3,L)
+c              OMEGA(J,1,L) = OMEGA(J,2,L)
+               RHO(J,1,L) = RHO(J,2,L)
+               P(J,1,L)   = P(J,2,L)
+               EPS(J,1,L) = EPS(J,2,L)
+            ENDDO
+         ENDDO
+!$OMP END DO NOWAIT
+!$OMP END PARALLEL
+
+         tmass=0.0
+         ajtot=0.0
+         do l=1,lmax
+            do k=2,kmax1
+               do j=2,jmax1
+                  volume=four*pi/lmax*(j-2)*rof3n**3
+                  tmass=tmass+rho(j,k,l)*volume
+                  ajtot=ajtot+a(j,k,l)*volume
+               end do
+            end do
+         end do
+         write(61,*) tmass,ajtot
+
+
+      END IF
 c FIND: START EDIT HERE
 !$OMP PARALLEL DO SCHEDULE(STATIC) PRIVATE(J,K,L)
 c---------------------------------------------
@@ -395,7 +547,7 @@ c density(radius, z) : ((1/SQRT(r))(1 + .25EXP(-(r*r)/(2W*W)))/(SQRT(2*pi)(.7r))
 c  J at dr go to ITYPE 7
 c just read first numbers, not read ANGGY or DENNY, two equations above do that
 c thene it should work
-c L = 1 because it is rotating the grid made by hscf.f 
+c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
       do L = 1, LMAX
        do K = 1, KMAX2
