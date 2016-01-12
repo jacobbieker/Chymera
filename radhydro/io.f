@@ -375,6 +375,7 @@ c...  Standard read in .........................................................
           do k=2,kmax1
              do j=2,jmax1
 c             0.05 is the W, change if need be, in ANGGY's 1 is G
+c             ROF3N and ZOF3N are the scaling factors for the grid points
               DENNY(j,k) = ((1/SQRT(j*ROF3N))(1 + .25EXP(-((j*ROF3N)* &
               (j*ROF3N))/(2*0.05*0.05)))/ &
                (SQRT(2*pi)(.7j)))EXP(-((k*ZOF3N)*(k*ZOF3N)/ &
