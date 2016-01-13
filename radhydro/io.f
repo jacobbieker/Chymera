@@ -353,8 +353,6 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
-            O10100    FORMAT(/,'Reading model type',I4,':  Axisymmetric Hachisu,',a)
-
          OPEN(UNIT=2,FILE='fort.2',STATUS='OLD')    
 
 !         READ(2,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
@@ -363,23 +361,23 @@ c...  Standard read in .........................................................
          READ(2,*)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
      &        A1NEWZ,JREQ,KZPOL
 
- 1685    FORMAT(3X,1PE22.15,2X,8(1PE22.15,2X),2I4)
-
          write(*,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,
      &        ROF3N,ZOF3N,A1NEWZ,JREQ,KZPOL
          
 !         READ(2,1617) DENNY
-!         READ(2,1617) ANGGY
- 1617    FORMAT(8(1PE22.15,2X))
+ !        READ(2,1617) ANGGY
+         READ(2,*) DENNY
+         READ(2,*) ANGGY
 !         Create the DENNY and ANGGY grids here
           do k=2,kmax1
              do j=2,jmax1
-c             0.05 is the W, change if need be, in ANGGY's 1 is G
-c             ROF3N and ZOF3N are the scaling factors for the grid points
-              DENNY(j,k) = ((1/SQRT(j*ROF3N))(1 + .25EXP(-((j*ROF3N)* &
-              (j*ROF3N))/(2*0.05*0.05)))/ &
-               (SQRT(2*pi)(.7j)))EXP(-((k*ZOF3N)*(k*ZOF3N)/ &
-               (4.2((j*ROF3N)*(j*ROF3N))))
+c             0.05 is the W, change if need be, in ANGGY's 1 is G            
+c            ROF3N and ZOF3N are the scaling factors for the grid points
+              DENNY(j,k) = ((1/SQRT((j * ROF3N))) & 
+               * (1 + .25EXP(-((j*ROF3N) &
+               * (j*ROF3N))/(2*0.05*0.05))) &
+               / (SQRT(2*pi)(.7j*ROF3N)))EXP(-((k*ZOF3N)*(k*ZOF3N) &
+               / (4.2((j*ROF3N)*(j*ROF3N))))
               ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N)) 
              enddo
           enddo
@@ -404,7 +402,6 @@ c             ROF3N and ZOF3N are the scaling factors for the grid points
             aj0=ajtot
          end do
          write(61,*) tmass,ajtot
- 61      format(1p5e12.4)
 
          tmass=tmass
          tmassini = tmass
@@ -544,7 +541,6 @@ c              OMEGA(J,1,L) = OMEGA(J,2,L)
          write(61,*) tmass,ajtot
 
 
-      END IF
 c FIND: START EDIT HERE
 c---------------------------------------------
 c Filling array with Rossby-Wave model
