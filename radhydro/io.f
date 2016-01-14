@@ -49,7 +49,7 @@ c..start for a doubling of the radial and vertical grids
      &     eps_rz(jmax_s2,kmax_s2,lmax)
 
 
-      CHARACTER resfile*80,index*6
+      CHARACTER resfile*80,index*8
       DATA CURLYR,XMU/83.14,2.0/
  
 C     ITYPE TELLS WHETHER INITIAL OR READ IN MODEL.
@@ -373,12 +373,12 @@ c...  Standard read in .........................................................
              do j=2,jmax1
 c             0.05 is the W, change if need be, in ANGGY's 1 is G            
 c            ROF3N and ZOF3N are the scaling factors for the grid points
-              DENNY(j,k) = ((1/SQRT((j * ROF3N))) & 
-               * (1 + .25EXP(-((j*ROF3N) &
-               * (j*ROF3N))/(2*0.05*0.05))) &
-               / (SQRT(2*pi)(.7j*ROF3N)))EXP(-((k*ZOF3N)*(k*ZOF3N) &
-               / (4.2((j*ROF3N)*(j*ROF3N))))
-              ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N)) 
+c              DENNY(j,k) = ( (1/SQRT((j * ROF3N))) *
+c               & (1 + .25EXP(-((j*ROF3N) *
+c               & (j*ROF3N))/(2*0.05*0.05))) /
+c               & (SQRT(2*pi)(.7j*ROF3N)) )EXP(-((k*ZOF3N)*(k*ZOF3N) /
+c               & (4.2((j*ROF3N)*(j*ROF3N))))
+c              ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N)) 
              enddo
           enddo
 !         READ(2,*) DENNY
@@ -959,7 +959,7 @@ c     MODEL READ.  Now set up grid, choose perturbations, find phi, read
 c     opacities, etc
 c
       
-      write(index,'(i6.6)')itstop
+      write(index,'(i8.8)')itstop
       resfile='rslts.'//index
       OPEN(unit=3,file=resfile)
 
@@ -1639,7 +1639,7 @@ C***********************************************************************
      &       RINV(JMAX2),
      &       Tauross(jmax2,kmax2,lmax)
       CHARACTER np*2,tw*3
-      CHARACTER index*6,savedfile*80,epsfull*80
+      CHARACTER index*8,savedfile*80,epsfull*80
       save ekold,egold,pdvold
       integer jstart
 
@@ -1647,7 +1647,7 @@ C***********************************************************************
 
       npr=int(10.0*nprime)
       tovw=int(1000.d0*toverw)
-      write(index,'(i6.6)') itstep
+      write(index,'(i8.8)') itstep
       write(np,'(i2.2)') npr
       if(nprime.gt.3.0) np="in"
       write(tw,'(i2.2)') int(tovw)
