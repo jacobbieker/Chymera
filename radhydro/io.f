@@ -49,7 +49,7 @@ c..start for a doubling of the radial and vertical grids
      &     eps_rz(jmax_s2,kmax_s2,lmax)
 
 
-      CHARACTER resfile*80,index*8
+      CHARACTER resfile*80,index*6
       DATA CURLYR,XMU/83.14,2.0/
  
 C     ITYPE TELLS WHETHER INITIAL OR READ IN MODEL.
@@ -82,7 +82,7 @@ C              PERTURB IT WITH RANDOM PERTURBATION.
 
    98 FORMAT(1E25.15) 
   100 FORMAT(1P2E15.8)
-  102 FORMAT(9(I8,1X))
+  102 FORMAT(9(I6,1X))
   103 FORMAT('1THIS WILL BE AN ISOTHERMAL SIMULAT. STARTING AT TIMESTEP
      &NUMBER ',I8,' AND',/,' GOING THROUGH TIMESTEP NUMBER ',I8,'.  FULL
      &DIAGNOSTICS EVERY ',I5,' STEPS.',///)
@@ -959,7 +959,7 @@ c     MODEL READ.  Now set up grid, choose perturbations, find phi, read
 c     opacities, etc
 c
       
-      write(index,'(i8.8)')itstop
+      write(index,'(i6.6)')itstop
       resfile='rslts.'//index
       OPEN(unit=3,file=resfile)
 
@@ -1639,7 +1639,7 @@ C***********************************************************************
      &       RINV(JMAX2),
      &       Tauross(jmax2,kmax2,lmax)
       CHARACTER np*2,tw*3
-      CHARACTER index*8,savedfile*80,epsfull*80
+      CHARACTER index*6,savedfile*80,epsfull*80
       save ekold,egold,pdvold
       integer jstart
 
@@ -1647,7 +1647,7 @@ C***********************************************************************
 
       npr=int(10.0*nprime)
       tovw=int(1000.d0*toverw)
-      write(index,'(i8.8)') itstep
+      write(index,'(i6.6)') itstep
       write(np,'(i2.2)') npr
       if(nprime.gt.3.0) np="in"
       write(tw,'(i2.2)') int(tovw)
