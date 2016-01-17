@@ -373,12 +373,12 @@ c...  Standard read in .........................................................
              do j=2,jmax1
 c             0.05 is the W, change if need be, in ANGGY's 1 is G            
 c            ROF3N and ZOF3N are the scaling factors for the grid points
-c              DENNY(j,k) = ( (1/SQRT((j * ROF3N))) *
-c               & (1 + .25EXP(-((j*ROF3N) *
-c               & (j*ROF3N))/(2*0.05*0.05))) /
-c               & (SQRT(2*pi)(.7j*ROF3N)) )EXP(-((k*ZOF3N)*(k*ZOF3N) /
-c               & (4.2((j*ROF3N)*(j*ROF3N))))
-c              ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N)) 
+              DENNY(j,k) = ( (1/SQRT((j * ROF3N))) *
+     &           (1 + .25**(-((j*ROF3N) *
+     &           (j*ROF3N))/(2*0.05*0.05))) /
+     &           (SQRT(2*3.14)*(.7*j*ROF3N)) )**(-((k*ZOF3N)*(k*ZOF3N) /
+     &           (4.2*((j*ROF3N)*(j*ROF3N)))))
+              ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N)) 
              enddo
           enddo
 !         READ(2,*) DENNY
