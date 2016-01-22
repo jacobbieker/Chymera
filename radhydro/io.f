@@ -366,8 +366,8 @@ c...  Standard read in .........................................................
          
 !         READ(2,1617) DENNY
  !        READ(2,1617) ANGGY
-         READ(2,*) DENNY
-         READ(2,*) ANGGY
+!         READ(2,*) DENNY
+!         READ(2,*) ANGGY
 !         Create the DENNY and ANGGY grids here
           do k=2,kmax1
              do j=2,jmax1
