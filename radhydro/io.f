@@ -368,6 +368,13 @@ c...  Standard read in .........................................................
  !        READ(2,1617) ANGGY
 !         READ(2,*) DENNY
 !         READ(2,*) ANGGY
+!         Zero out the gride before doing the data
+          do k=2, kmax1
+            do j=2,jmax1
+               DENNY(j,k) = 0
+               ANGGY(j,k) = 0
+            enddo
+          enddo
 !         Create the DENNY and ANGGY grids here
           do k=2,kmax1
              do j=2,jmax1
