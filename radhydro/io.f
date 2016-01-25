@@ -1107,7 +1107,7 @@ cstar      Msyscgs=Mstar*Msuncgs*(1.0+(tmassini/(sysmass-tmassini)))
 cstar      mass_star = sysmass-tmassini
 
       Msyscgs=Mstar*Msuncgs
-      mass_star = 0.0
+      mass_star = 1.0
 
 cpoint      starmass=5.0d0
 cpoint      mass_star=starmass
