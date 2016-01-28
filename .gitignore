@@ -2,6 +2,10 @@
 Thumbs.db
 ehthumbs.db
 
+# Not include run directories
+run*/
+
+
 # Folder config file
 Desktop.ini
 

@@ -1,0 +1,4 @@
+f="tk.000500"
+set yrange [3.0:88]
+set size square
+plot f w image

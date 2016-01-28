@@ -1,0 +1,13 @@
+set multiplot
+set size 1.0,0.5
+set xlabel 'r(pu)'
+set ylabel 'm_c'
+set logscale y
+set origin 0.0,0.0
+plot 'mfrac.dat' u 2:4 w p,'mfrac.000' u 2:4 w l
+set origin 0.0,0.5
+set ylabel '{\Symbol D}J'
+unset logscale y
+plot 'mfrac.dat' u 2:7 w p,'mfrac.000' u 2:7 w l
+unset logscale y
+unset multiplot

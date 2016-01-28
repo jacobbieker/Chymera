@@ -13,9 +13,8 @@ C***********************************************************************
 #include "units.h"
 #endif
 
-!      PARAMETER (JMAX_s=JMAX/2,JMAX_s1=JMAX_s+1,JMAX_s2=JMAX_s+2)
-      PARAMETER (JMAX_s=256,JMAX_s1=JMAX_s+1,JMAX_s2=JMAX_s+2)
-      PARAMETER (KMAX_s=KMAX/2,KMAX_s1=KMAX_s+1,KMAX_s2=KMAX_s+2)
+      PARAMETER (JMAX_s=jmax/2,JMAX_s1=JMAX_s+1,JMAX_s2=JMAX_s+2)
+      PARAMETER (KMAX_s=kmax/2,KMAX_s1=KMAX_s+1,KMAX_s2=KMAX_s+2)
 
       real*8  ommax,omcen,them
       common  /coefs/coef(pot3jmax2,pot3kmax2,lmax2,2)
@@ -26,7 +25,6 @@ C***********************************************************************
       character::date_date*8,date_time*10,date_zone*5
 
       real*8 limiter
-
 c...arrays for various starts (see itype below).  Eventually,
 c...only the arrays in POIS, STATE, and EOM are evolved.
 
@@ -97,7 +95,6 @@ C              PERTURB IT WITH RANDOM PERTURBATION.
 c-------------------------------------------------------------------------------
 c  Read run parameter file.
 c
-
       WRITE(6,10000) 'fort.5'
 10000 FORMAT('Reading run parameter file ',a)
       OPEN(UNIT=5,FILE='fort.5',STATUS='OLD')
@@ -163,8 +160,8 @@ c
 
          OPEN(UNIT=2,FILE='fort.2',STATUS='OLD')    
 
-!         READ(2,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
-!     &        A1NEWZ,JREQ,KZPOL
+c         READ(2,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
+c     &        A1NEWZ,JREQ,KZPOL
 
          READ(2,*)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
      &        A1NEWZ,JREQ,KZPOL
@@ -174,33 +171,27 @@ c
          write(*,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,
      &        ROF3N,ZOF3N,A1NEWZ,JREQ,KZPOL
          
-!         READ(2,1617) DENNY
-!         READ(2,1617) ANGGY
- 1617    FORMAT(8(1PE22.15,2X))
+c         READ(2,1617) DENNY
+c         READ(2,1617) ANGGY
          READ(2,*) DENNY
          READ(2,*) ANGGY
+ 1617    FORMAT(8(1PE22.15,2X))
          CLOSE(2)
 
          tmass=0.0
          ajtot=0.0
-         tm0=tmass
-         aj0=ajtot
-         do j=2,jmax1
+         do l=1,lmax
             do k=2,kmax1
-               do l=1,lmax
-                  volume=four*pi/lmax*(j-2)*rof3n**3
+               do j=2,jmax1
+                  volume=4.0*3.141592654/lmax*(j-2)*rof3n**3
                   tmass=tmass+denny(j,k)*volume
                   ajtot=ajtot+anggy(j,k)*denny(j,k)*volume
                end do
             end do
-            rj=(j-2)*rof3n
-            tm0=tmass
-            aj0=ajtot
          end do
-         write(61,*) tmass,ajtot
- 61      format(1p5e12.4)
-
-         tmass=tmass
+c         write(61,*) tmass,ajtot
+         print *, 'tmass =',tmass,'ajtot=',ajtot
+         print *, 'max j,k,l =',jmax,kmax,lmax
          tmassini = tmass
          tmassadd = zero
          tmassout = zero
@@ -221,11 +212,12 @@ c
          epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
          dumlmt=epslmt**(1.d0/gamma)
          OMMAX=OMCEN
+
          sound=SQRT(gamma*(DEN**(gamma-1.d0)))
          konst=one
 
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(LP,j,k,l,konst)                        &
-!$OMP&  SHARED(gamma,den,a1newz)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(LP,j,k,l)                        &
+!$OMP&  SHARED(gamma,konst,den)
 !$OMP DO SCHEDULE(STATIC)
          do l=1,lmax
             do k=2,kmax1
@@ -234,18 +226,17 @@ c
                   jn(j,k,L)=anggy(j,k)
                   if(rho(j,k,l).lt.gridlim*den) then
                     rho(j,k,l)=gridlim*den
+                    jn(j,k,L)=0.d0
                   endif
                   s(j,k,l)=0.d0
                   t(j,k,l)=0.d0
                   a(J,K,L)=rho(j,k,l)*jn(j,k,l)
                   u(j,k,l)=0.d0
                   w(j,k,l)=0.d0
-c..... if(j.le.KZPOL) then
-                    konst=one
-c...... else
-c....... konst=A1NEWZ
-c....... endif
-                  p(j,k,l)=konst*rho(j,k,l)**gamma
+!                 p(j,k,l)=konst*rho(j,k,l)**gamma
+! making changes to entropy profile.
+                  p(j,k,l)=(2.d0/rof3n*7.726d0 /(2*j-1))**2 
+     &             *konst*rho(j,k,l)**gamma
                   eps(j,k,l)=p(j,k,l)/(gamma-1.d0)
                end do
             end do
@@ -323,22 +314,8 @@ c              OMEGA(J,1,L) = OMEGA(J,2,L)
          ENDDO
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
-
-         tmass=0.0
-         ajtot=0.0
-         do l=1,lmax
-            do k=2,kmax1
-               do j=2,jmax1
-                  volume=four*pi/lmax*(j-2)*rof3n**3
-                  tmass=tmass+rho(j,k,l)*volume
-                  ajtot=ajtot+a(j,k,l)*volume
-               end do
-            end do
-         end do
-         write(61,*) tmass,ajtot
-
-
       END IF
+
 
 C
 C-------------------------------------------------------------------------------
@@ -353,7 +330,7 @@ c...  Standard read in .........................................................
 
          IF (ITYPE.EQ.99) THEN
 
-         OPEN(UNIT=2,FILE='fort.2',STATUS='OLD')    
+            OPEN(UNIT=2,FILE='fort.2',STATUS='OLD')    
 
 !         READ(2,1685)PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
 !     &        A1NEWZ,JREQ,KZPOL
@@ -564,34 +541,6 @@ c thene it should work
 c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
 
-        END IF
-
-         IF (ITYPE.EQ.1.OR.ITYPE.EQ.98) THEN
-            
-            OPEN(UNIT=7,FILE='fort.7',FORM='UNFORMATTED',STATUS='OLD')
-            WRITE(6,10200) ITYPE,'.'
-            read(7) S
-            read(7) T
-            read(7) A
-            read(7) RHO
-            read(7) EPS
-            read(7)ROF3N,ZOF3N,DELT,TIME,ELOST,DEN,SOUND,
-     &        JREQ,OMMAX
-            read(7,IOSTAT=ios) tmassini,tmass,tmassadd,
-     &         tmassout,tmassacc,totcool,totdflux,totheat,totirr,etotfl,
-     &         eflufftot  !ACB
-
-            if (ios /= 1) then 
-               print *, "Last set of data missing. Check input."
-            endif
-
-            ommax=omega(jmin,2,1)
-            ommax=max(1.d-14,ommax)     !dkb - temp fix for underflow problem
-            dencen=den
-            rholmt=dencen*gridlim
-            epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
-            CLOSE(7)
-
          END IF
 
 
@@ -611,15 +560,16 @@ c...  Read in data, then increase the radial grids by 2x .......................
             read(7,IOSTAT=ios) tmassini,tmass,tmassadd, 
      &         tmassout,tmassacc,totcool,totdflux,totheat,totirr,etotfl, 
      &         eflufftot  !ACB 
- 
+            print *, "ios =", ios 
             if (ios /= 1) then  
                print *, "Last set of data missing. Check input." 
             endif 
-
+            print *, tmassini,tmass,tmassadd,tmassout,tmassacc, 
+     &           totcool,totdflux,totheat,totirr,etotfl,eflufftot 
             dencen=den
             rholmt=dencen*gridlim
             epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
-            ommax=7.483E-02            
+!            ommax=7.483E-02            
 
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,k,l)                        &
 !$OMP&  SHARED(zof3n,dtheta,epslmt,rholmt) REDUCTION(+:tmassadd)
@@ -730,8 +680,8 @@ c...  Read in data, then increase both radial and vertical grids by 2x .........
                print *, "Last set of data missing. Check input." 
             endif 
        
-            ommax=omega(jmin,2,1)
-            ommax=max(1.d-14,ommax)
+c            ommax=omega(jmin,2,1)
+c            ommax=max(1.d-14,ommax)
             dencen=den
             rholmt=dencen*gridlim
             epslmt=(1.d0/(gamma-1.0))*rholmt**gamma*gridlim
@@ -958,11 +908,13 @@ c...  Verfication we read the restarted model ok ...............................
          
       END IF
 
+
+
 c
 c*******************************************************************************
 c*******************************************************************************
 c
-c     MODEL READ.  Now set up grid, choose perturbations, find phi, read
+c     MODEL READ.  Now setup grid, choose perturbations, find phi, read
 c     opacities, etc
 c
       
@@ -1026,7 +978,7 @@ c
        write(3,116) ' PARA ->   ',ac
       case(3)
        write(3,"( ' H2 TREATMENT: EQUILIBRIUM')")
-      case(4)
+      case(-1)
        write(3,"( ' H2 TREATMENT: SINGLE GAMMA')")
        write(3,116) " GAMMA ->", gamma
       end select
@@ -1101,17 +1053,16 @@ c routine.
       select case(SETUNITS)
 
       case (0)
-
-cstar      sysmass=1.0d0
-cstar      Msyscgs=Mstar*Msuncgs*(1.0+(tmassini/(sysmass-tmassini)))
-cstar      mass_star = sysmass-tmassini
-
-      Msyscgs =Mstar*Msuncgs
-      mass_star = 1.0
-
-cpoint      starmass=5.0d0
-cpoint      mass_star=starmass
-cpoint      Msyscgs=Mstar*Msuncgs*(1.0+1.0/starmass)
+!      mass_star = zero
+!      mass_star = 3.01d-1
+!      mass_star = 5.0d1
+       mass_star = 1.0d1
+      if(mass_star.gt.0.0) then
+        Msyscgs=Mstar*Msuncgs*(1.d0+1.d0/mass_star)
+!        Msyscgs=Mstar*Msuncgs
+      else
+        Msyscgs=Mstar*Msuncgs
+      end if
       
       PKcgs = ( (Rdiskau*AUcgs/r(jreq))**(3.0-xn) * 
      &     Gcgs**xn * Msyscgs**(xn-1.0) )**(1.0/xn)
@@ -1185,9 +1136,6 @@ cpoint      Msyscgs=Mstar*Msuncgs*(1.0+1.0/starmass)
       call State()
 !$OMP END PARALLEL
 
-c61      write(61,161) (j,rho(j,2,1)**gamma/p(j,2,1),j=1,jmax1,10)
-c61 161  format(2(i5,1p1e12.4))
-c61      stop
 
 C...............................................................................
 c...  The next few lines open the mean molecular weight and opacities files
@@ -1211,6 +1159,7 @@ c...  only and absorption plus scattering.
          enddo
       enddo
       close(70)
+      
       open(unit=71,file=trim(rosstablefile),status='old'
      &     ,form='formatted')
       do i=1,itable
@@ -1219,6 +1168,7 @@ c...  only and absorption plus scattering.
          enddo
       enddo
       close(71)
+      
       open(unit=72,file=trim(plancktablefile), status='old',
      &     form='formatted')
       do i=1,itable
@@ -1227,6 +1177,7 @@ c...  only and absorption plus scattering.
          enddo
       enddo
       close(72)
+      
       open(unit=73,file=trim(irrtablefile), status
      &     ='old',form='formatted')
       do i=1,itable
@@ -1244,6 +1195,7 @@ c...  only and absorption plus scattering.
          enddo
       enddo
       close(74)
+
       Pmin=-12.0
       Pmax=9.0
       Tmin=0.5
@@ -1297,6 +1249,7 @@ c
 !$OMP END PARALLEL
       END IF
 
+
 C...FIND POTENTIALS FOR RESTARTED EVOLUTION or axisymmetric
 
 c
@@ -1317,6 +1270,7 @@ c
         endif
         call set_particle_density()
 #endif
+
 
 !$OMP PARALLEL DEFAULT(SHARED)                                          &
 !$OMP&  SHARED(JKMAX,ISYM)
@@ -1369,10 +1323,12 @@ C...Smooth the edge of the initial model.
 
 
       limiter = den*phylim 
-
+ 499  format(2i5,1p1e12.5)
    
       DO 313 J=2,JMAX2
+c         write(47,*) j,rho(j,2,1)
          DO 314 K=2,KMAX2
+            write(47,499) j,k,rho(j,k,1)
             IF(rho(J,K,1).LT.limiter) THEN
                WRITE(3,315) J,K
  315           FORMAT(' JTOP=',I3,' KTOP=',I3)
@@ -1384,7 +1340,15 @@ C...Smooth the edge of the initial model.
 c
 c...Axisymmetric models done.  Restarted models done.  Return and hydro.
 c
-
+c
+c...Write a bunch of stuff for analysis.
+      if(itype.lt.0) then
+        call RITE(1,1, 128,128,1, 2,kmax1,1, 1,1,1)
+        open(unit=11,file='phi3d.dat',form='unformatted')
+        write(11) PHI
+        close(11)
+      end if
+      
       IF((ITYPE.LE.5).OR.(ITYPE.EQ.8).OR.(ITYPE.EQ.9))
      &     RETURN
 
@@ -1436,8 +1400,8 @@ c
 c
 c...amplitude of initial hit
 c
-         WRITE(3,1001)AMP0
- 1001    FORMAT(5X,' RANDOM PERT, AMP0 =',1PE15.4)
+         WRITE(3,*)AMP0
+ 1001    FORMAT(' RANDOM PERT, AMP0 =',1PE15.4)
          DO 462 L=1,LMAX
          DO 462 K=2,KMAX1
          DO 462 J=jmin,jmax1
@@ -1605,21 +1569,6 @@ C....SET RHO AROUND Z-AXIS AND BELOW THE EQUATORIAL PLANE
    55 CONTINUE
 !$OMP END DO NOWAIT
 !$OMP END PARALLEL
-
-cjni-test
-
-         tmass=0.0
-         ajtot=0.0
-         do l=1,lmax
-            do k=2,kmax1
-               do j=2,jmax1
-                  volume=four*pi/lmax*(j-2)*rof3n**3
-                  tmass=tmass+rho(j,k,l)*volume
-                  ajtot=ajtot+a(j,k,l)*volume
-               end do
-            end do
-         end do
-         write(61,*) tmass,ajtot
       
       RETURN
       END
@@ -1633,11 +1582,12 @@ C***********************************************************************
 
 #include "hydroparam.h"
 #include "globals.h"
+#include "units.h"
 
       COMMON /INSIDE/TMASS,ENEW,ELOST,EDIF,PHICHK,KLOCAT
       COMMON /TIMEST/INDX,ISOADI,ALLOW,DMAX,CHGMAX
       COMMON /ITS/ITSTRT,ITSTOP,ITSTEP
-
+      common /misc/ epsjr,rhojr,ommax
 
       REAL*8 FAREA(JMAX,KMAX),
      &       HAREA(JMAX,KMAX),
@@ -1650,15 +1600,14 @@ C***********************************************************************
       save ekold,egold,pdvold
       integer jstart
 
-      real*8 OMMAX
-
+c      real*8 OMMAX
       npr=int(10.0*nprime)
       tovw=int(1000.d0*toverw)
       write(index,'(i6.6)') itstep
       write(np,'(i2.2)') npr
       if(nprime.gt.3.0) np="in"
       write(tw,'(i2.2)') int(tovw)
-      OMMAX=zero
+c      OMMAX=zero
  
 C     IWHAT = 1  PRINTS ALL VARIABLES OUT IN 1PE12.4 FORMAT.
 C           = 0  BRIEF DIAGNOSTICS (2 LINES) ONLY.
@@ -1678,13 +1627,13 @@ c     end of bogus initializations.
  100  FORMAT('1')
  101  FORMAT(//,' J  K  L ',6X,'S',11X,'T',11X,'A',11X,'U',11X,'W',10X,
      &     'JN',9X,'OMEGA',9X,'EPS',9X,'P',10X,'RHO',9X,'PHI',/)
- 102  FORMAT(3I3,1P11E12.4)
+ 102  FORMAT(3I4,1P11E12.4)
  103  FORMAT(//)
  104  FORMAT('   TSTEP',4X,'TIME',8X,'DELT',8X,'ETOT/JT',4X,'EGRAV/ROT',
      &     2X,'EKIN/RZKIN',4X,'ENEW/CD',4X,'EDIF/DMAX',3X,'ELOST/JKL',
      &     4X,'TMASS',7X,'PHICHK',4X,'K',/)
  105  FORMAT(I8,1P10E12.4,I4)
- 106  FORMAT(4X,1PE12.4,' CODETIME',6X,1P5E12.4,I4,2I3,2X,1P2E12.4,/)
+ 106  FORMAT(1PE12.4,' CODETIME',6X,1P5E12.4,I4,I3,1X,I3,2X,1P2E12.4,/)
  118  FORMAT(///)
  119  FORMAT(2I4,1P5E11.3,2X,1P5E11.3)
  121  FORMAT('INITIAL, TOTAL, ADDED, OUTFLOW, ACCRETED MASSES',1P5E16.6)
@@ -1887,7 +1836,8 @@ C
          enddo
       enddo
 !$OMP END PARALLEL DO
-
+      
+      if (ictype.ne.0) then
       epsfull='coolheat_full.'//index
       open(unit=9,file=epsfull,form='unformatted')
       write(9) divflux
@@ -1901,10 +1851,11 @@ C
       write(9) time
       close(9)
 
-      open(unit=9,file="gamma1."//index,form='unformatted')
-      write(9) gamma1
-      write(9) time
-      close(9)
+      end if
+c      open(unit=9,file="gamma1."//index,form='unformatted')
+c      write(9) gamma1
+c      write(9) time
+c      close(9)
 
 C-----------------------------------------------------------------------
 C  Print some grid spacing information.
@@ -1920,6 +1871,8 @@ C
   116 FORMAT(1P8E15.6)
   117 FORMAT(////,6X,'Z-DIRECTION',/,' ZOF3N   ',1PE16.6,
      &  /,' A1NEWZ  ',1PE16.6)
+
+
 
 C-----------------------------------------------------------------------
 C  Not sure what the following does.
@@ -2100,79 +2053,14 @@ Cacm          DOT1=DOT1+U1*RHO(JW,K,L)*0.25
 !$OMP MASTER
         write(3,507)j,r(j),FRAC,DIFF,DOT,AFRAC,ADIFF,ADOT,EG,ER,ET,TKIN,&
      &  EI,ETOT
-        write(33,667) j,r(j),FRAC,DIFF,DOT,AFRAC,ADIFF,ADOT
-        write(3,508) EGT,ERT,ETT,TKINT,EIT,ETOTT
+        write(33,667)j,r(j),FRAC,DIFF,DOT,AFRAC,ADIFF,ADOT
+        write(3,508)EGT,ERT,ETT,TKINT,EIT,ETOTT
 !$OMP END MASTER
   504   CONTINUE
 !$OMP END PARALLEL
-
-c************************************************************************
-c************************************************************************
-c
-c    Calculate the gravitational torque
-c
-       xmass=0.0
-       do j=2,jmax1
-         torkj=0.0
-         d2x=(r(j+1)**2-r(j)**2)*(rhf(j+1)-rhf(j))
-         d3x=(2.0*3.141592654/lmax)*d2x
-         dmass=0.0
-         do k=2,kmax1
-           do l=1,lmax
-             lp1=l+1
-             if(lp1.gt.lmax) lp1=1
-             gravity=-rho(j,k,l)*(phi(j,k,lp1)-phi(j,k,l))*d2x
-             torkj=torkj+gravity
-             xmass=xmass+rho(j,k,l)*d3x
-             dmass=dmass+rho(j,k,l)*d3x
-           end do
-         end do
-         write(63,163) r(j),torkj,xmass,dmass
- 163     format(1p4e12.4)
-       end do
-c
-c  output the Virial: 2T + W (actually T/W)
-c
-      do j=2,jmax
-        d2x=2.0*(rhf(3)-rhf(2))**2*rhf(j)
-        d3x=(2.0*acos(-1.0d0)/lmax)*d2x
-        do k=2,2
-          xm1=0.0
-          xh2=0.0
-          do l=1,lmax
-            xm1=xm1+rho(j,k,l)
-            xh2=xh2+a(j,k,l)
-          end do
-          xm1=xm1/lmax
-          xh2=xh2/lmax
-          cp=xh2**2/2.0/xm1/rhf(j)**2
-          frame=xh2/xm1/rhf(j)
-          do l=1,lmax
-            vr=u(j,k,l)
-            vz=w(j,k,l)
-            vphi=omega(j,k,l)*rhf(j)
-            vxz=0.5*rho(j,k,l)*(vr**2+vz**2)
-            rot=0.5*rho(j,k,l)*vphi**2
-            rotf=vphi-frame
-            rot1=0.5*rho(j,k,l)*rotf**2
-            uint=eps(j,k,l)
-            gpot=phi(j,k,l)
-            gpe=0.5*rho(j,k,l)*phi(j,k,l)
-            vt=-(vxz+rot+uint)/gpe
-            vt1=-(vxz+rot1+uint)/gpe
-            write(73,173) j,l,vt,vx,vz,vphi,uint,gpot,vt1
-            write(74,173) j,l,rho(j,k,l),rho(j,k,l)*phi(j,k,l),cp
- 173        format(2i5,1p7e10.2)
-          end do
-        end do
-      end do
-c
-c
-c************************************************************************
-c************************************************************************
-  507   FORMAT(1X,I4,F7.3,1P12E10.2/)
-  667   FORMAT(1X,I6,1p1e13.5,1P7E10.2/)
-  508   FORMAT(45X,'TOTAL ENERGIES =    ',1P6E10.2/)
+  507   FORMAT(1X,I4,1X,F7.3,1X,1P12E12.4/)
+  667   FORMAT(1X,I4,1X,F7.3,1X,1P7E14.5/)
+  508   FORMAT('TOTAL ENERGIES =    ',1P6E12.4/)
 C-----------------------------------------------------------------------
   999 RETURN
       END
@@ -2195,7 +2083,8 @@ C***********************************************************************
       close(iunit)
       return
       end
-     
+
+      
 
 C***********************************************************************
       subroutine cyl3d

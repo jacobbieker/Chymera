@@ -1,0 +1,74 @@
+3dhyd-main.f:c            write(23)tempK
+3dhyd-main.f:     &              ,tau(j,2,1,1),TempK(j,2,1),TeffK(j,1),TphK(j,1)
+3dhyd-main.f:     &                 ,theat,tirr,tau(j,k,1,1),TempK(j,k,1)
+3dhyd-main.f:            TEMPK(J,K,L)=zero
+
+CoolingPrescriptions.f:     &              .(twothree))) TphK(j,l)=ten**((log10(TempK(j,k,l))+
+CoolingPrescriptions.f:     &              log10(TempK(j,k+1,l)))/two)
+
+ExternalRoutines.f:           divflux(J,K,L)=fluxfac*sigma*((TempK(J,K,L)/Tconv)**4
+ExternalRoutines.f:           tempk(J,K,L)=ttenv
+
+hybrid.f:           tempk(J,K,L)=tempk(J,K,L)/tconv
+hybrid.f:           sfunc(J,K,L) = sigma*tempk(J,K,L)**4/pi
+hybrid.f:              dsdt(J,K,L) =  two*sigma*tempk(J,K,L)**3 * 
+hybrid.f:     &            (tempk(J,K-1,L)-tempk(J,K+1,L))/(pi*dtau_z(J,K,L) )
+hybrid.f:            dsdt(J,2,L) = sigma*tempk(J,2,L)**3 * 
+hybrid.f:     &        ( eight*tempk(J,2,L)-seven*tempk(J,3,L)-tempk(J,4,L)) 
+hybrid.f:                radflux(J,K,L,1) = FluxLmDf(tempk(J,K,L)*tconv,
+hybrid.f:     &                  tempk(J-1,K,L)*tconv,
+hybrid.f:                radflux(J,K,L,3) = FluxLmDf(tempk(J,K,LP)*tconv,
+hybrid.f:     &                  tempk(J,K,L)*tconv,
+hybrid.f:              maxt=max(tempk(J,K,L),maxt)
+hybrid.f:	           !call tempfindspec(eps(J,K,L),rho(J,K,L),tempk(J,K,L))
+hybrid.f:                   call get_gamma(eps(J,K,L),rho(J,K,L),tempk(J,K,L)
+hybrid.f:                   if(tempk(J,K,L)<tirr)then
+hybrid.f:                      tempk(J,K,L)=tirr
+hybrid.f:                tempk(J,K,L)=tbgrnd
+hybrid.f:!       print *, "TEMPK ",tempk(JL,KL,LL),maxt,JL,KL,LL
+
+hybrid.old.nosubcycle.f:           tempk(J,K,L) = tempk(J,K,L)/tconv ! convert temps to code units
+hybrid.old.nosubcycle.f:            sfunc(J,K,L) = sigma*tempk(J,K,L)**4/pi
+hybrid.old.nosubcycle.f:              dsdt(J,K,L) =  two*sigma*tempk(J,K,L)**3 * 
+hybrid.old.nosubcycle.f:     &            (tempk(J,K-1,L)-tempk(J,K+1,L))/(pi*dtau_z(J,K,L) )
+hybrid.old.nosubcycle.f:            dsdt(J,2,L) = sigma*tempk(J,2,L)**3 * 
+hybrid.old.nosubcycle.f:     &        ( eight*tempk(J,2,L)-seven*tempk(J,3,L)-tempk(J,4,L)) 
+hybrid.old.nosubcycle.f:                radflux(J,K,L,1) = FluxLmDf(tempk(J,K,L)*tconv,
+hybrid.old.nosubcycle.f:     &                  tempk(J-1,K,L)*tconv,
+hybrid.old.nosubcycle.f:                radflux(J,K,L,3) = FluxLmDf(tempk(J,K,LP)*tconv,
+hybrid.old.nosubcycle.f:     &                  tempk(J,K,L)*tconv,
+hybrid.old.nosubcycle.f:           tempk(J,K,L) = tempk(J,K,L)*tconv ! convert temps to Kelvin
+
+
+io.f:      write(9) TempK
+
+
+RadTran.f:                if (TempK(j,k,l).lt.Tbgrnd) TempK(j,k,l)=Tbgrnd
+RadTran.f:                  call dalessio(TempK(j,k,l),(P(j,k,l)*Pconv),Oross(j,k
+RadTran.f:               Tfit = TempK(j,2,l)/Tconv
+RadTran.f:     &                    **((log10(TempK(j,k,l))+log10(TempK(j,k+1,l)))
+RadTran.f:                        Radflux(j,k,l,1)=fluxlmdf(TempK(j,k,l),TempK(j-1
+RadTran.f:                        Radflux(j,k,l,2)=fluxlmdf(TempK(j,k,l),TempK(j,k
+RadTran.f:                        Radflux(j,k,l,3)=fluxlmdf(TempK(j,k,lp),TempK(j
+RadTran.f:c                          Radflux(j,k+1,l,2)= fluxlmdf(TempK(j,k+1,l),
+RadTran.f:c     &                    TempK(j,k,l),Oross(j,k+1,l),Oross(j,k,l),rho(
+RadTran.f:               Tfit = TempK(j,2,l)/Tconv
+RadTran.f:     &                       )*sigma*((TempK(j,k,l)/Tconv)**4)*4.0
+RadTran.f:                           Tfit=TempK(j,k,l)/Tconv
+RadTran.f:                        Radflux(j,k,l,1)=fluxlmdf(TempK(j,k,l),TempK(j-1
+RadTran.f:                        Radflux(j,k,l,2)=fluxlmdf(TempK(j,k,l),TempK(j,k
+RadTran.f:                        Radflux(j,k,l,3)=fluxlmdf(TempK(j,k,lp),TempK(j
+RadTran.f:               Tfit_old = TempK(j,kfit+1,l)
+RadTran.f:               TempK(j,kfit+1,l) = (3.0/4.0*Tbdry4*(tau(j,kfit+1,l,1)
+RadTran.f:                   tempk(J,K,L) = temptable(1)/engtable(1)*eng
+RadTran.f:     & * (tempk(J,K,L)-temptable(I-1))
+RadTran.f:                   tempk(J,K,L) = temptable(I-1) +
+RadTran.f:     & * (tempk(J,K,L)-temptable(I-1))
+RadTran.f:                   if(tempk(J,K,L)>temptable(TTABLE))then
+RadTran.f:                      tempk(J,K,L)=temptable(TTABLE)
+RadTran.f:                 tempk(J,K,L) = tbgrnd
+RadTran.f:     & * (tempk(J,K,L)-temptable(I-1))
+
+../eos/state.f:c              call get_gamma(eps(J,K,L),rho(J,K,L),tempk(J,K,L),
+../eos/state.f:c              p(J,K,L) = bkmpcgs*rho(J,K,L)*tempk(J,K,L)*rhoconv
+../eos/state.f.obsolete:              p(J,K,L) = bkmpcgs*rho(J,K,L)*tempk(J,K,L)*rhoconv
