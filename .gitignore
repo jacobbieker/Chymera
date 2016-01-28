@@ -6,6 +6,9 @@ ehthumbs.db
 run*/
 chymera-uo/runS3b/
 
+.cproject
+.project
+CMakeLists.txt
 
 # Folder config file
 Desktop.ini
