@@ -233,10 +233,10 @@ c         write(61,*) tmass,ajtot
                   a(J,K,L)=rho(j,k,l)*jn(j,k,l)
                   u(j,k,l)=0.d0
                   w(j,k,l)=0.d0
-!                 p(j,k,l)=konst*rho(j,k,l)**gamma
+                 p(j,k,l)=konst*rho(j,k,l)**gamma
 ! making changes to entropy profile.
-                  p(j,k,l)=(2.d0/rof3n*7.726d0 /(2*j-1))**2 
-     &             *konst*rho(j,k,l)**gamma
+!                  p(j,k,l)=(2.d0/rof3n*7.726d0 /(2*j-1))**2 
+!     &             *konst*rho(j,k,l)**gamma
                   eps(j,k,l)=p(j,k,l)/(gamma-1.d0)
                end do
             end do
