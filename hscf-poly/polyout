@@ -1,0 +1,21 @@
+ polytropic index  :  1.5
+
+ n prime :     100.0
+
+ converged after          154  iterations
+ relative diff. in hmax  :  0.5755E-08
+ relative diff. in h0sq  :  0.9471E-08
+ relative diff. in c     :  0.9112E-08
+ 1.5*s/|w|               :  0.4717E+00
+ t/|w|                   :  0.2840E-01
+ virial error            :  0.1915E-03
+
+ axis ratio:   0.200
+ omega0^2:    8.6216E-01
+ mass:    6.6613E-03
+ t:    5.0088E-06
+ -w:    1.7635E-04
+ -ws   -0.0000E+00
+ 3.0*s:    1.6637E-04
+ star/disk:     0.0000E+00
+

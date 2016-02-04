@@ -1,0 +1,33 @@
+set multiplot
+set size 0.5,0.33
+set xlabel 'r/R_*'
+set ylabel '{/Symbol W}'
+set origin 0.0,0.0
+set nologscale y
+set nokey
+set auto
+plot 'anal.dat' using 2:7 with points
+set origin 0.0,0.33
+set logscale y
+set nokey
+set auto
+set ylabel '{/Symbol r}'
+plot 'anal.dat' using 2:3 with points
+set origin 0.0,0.66
+set nologscale y
+set nokey
+set auto
+set ylabel '{/Symbol m}'
+plot 'anal.dat' using 2:4 with points
+set origin 0.5,0.0
+set xrange [0:1.0]
+set yrange [0:1.0]
+unset ylabel
+set size 0.5,1.0
+set size square
+plot 'fort.61' using 1:2 with steps,'fort.61' using 1:3 with steps,\
+'fort.61' using 1:4 with steps,'fort.61' using 1:5 with steps,\
+'fort.61' using 1:6 with steps,'fort.61' using 1:7 with steps,\
+'fort.61' using 1:8 with steps,'fort.61' using 1:9 with steps,\
+'fort.61' using 1:10 with steps,'fort.61' using 1:11 with steps
+unset multiplot

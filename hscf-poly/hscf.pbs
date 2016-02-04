@@ -1,0 +1,48 @@
+#!/bin/bash -l
+## Lines preceded by "#PBS" are directives for Torque/PBS
+## this line tells Torque the name of the batch job
+##
+#PBS -N hscf
+
+## this line tells Torque which queue to submit to
+## see /INFO/queues.txt for a description of available queues
+##
+#PBS -q generic
+
+## resource list:
+##   1 node and 12 processors per node
+##   24 hrs
+##
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=24:00:00
+
+## directory list:
+##
+#PBS -d /home6/jbieker/hscf-poly
+#PBS -o /home6/jbieker/hscf-poly
+#PBS -e /home6/jbieker/hscf-poly
+
+## email
+##
+#PBS -m ea
+#PBS -M jbieker@uoregon.edu
+
+# load modules
+# see /INFO/modules-howto.txt for a mini-howto on Modules
+
+module load intel/13.1.1
+
+# set stacksize 
+
+ulimit -s unlimited
+limit stacksize unlimited
+
+# execute program
+#
+# WARNING, conv actually requires an odd number of processes,
+# uses one as master leaving (n-1) worker prcesses.
+#
+cd ~/hscf-poly/
+gfortran -fdefault-real-8 hscf.f >hscf.x
+./hscf.x <hscf.in >hscf.out
+

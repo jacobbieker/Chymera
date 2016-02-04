@@ -1,0 +1,20 @@
+set multiplot
+unset key
+set xrange [0:2.5]
+set grid
+set origin 0,0
+set size 0.5,0.5
+set xlabel 'M_c'
+set ylabel 'J_e'
+set logscale y
+plot 'fort.95.non' using 3:1 with lines,'fort.95.ur' u 3:1 w lines
+set origin 0.0,0.5
+set xlabel 'M_c'
+set ylabel 'T/|W|'
+plot 'fort.95.non' using 3:1 with lines,'fort.96.all-0.6' u 3:1 w lines
+set origin 0.5,0.5
+set xlabel 'M_c'
+set ylabel 'T/|W|'
+plot 'fort.95.non' using 3:1 with lines,'fort.96.all-1.0' u 3:1 w lines
+set auto
+unset multiplot
