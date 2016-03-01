@@ -2,6 +2,7 @@ __author__ = 'jacob'
 import csv
 import os
 
+
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
     """
@@ -24,6 +25,10 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
 
     if type == 'RWI':
         print('Using Rossby Wave equations for disk')
-
+        with open("fort.2", 'w', newline='') as model_file:
+            writer = csv.writer(model_file, delimiter=" ")
+            writer.writerow([str(polytropic_index)] + TODO: Stuff + [str(jmax)] + [str(kmax)])
+            #TODO INput coordinates of points into RWI equations and output them with 8 density points per line
+            # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
