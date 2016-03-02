@@ -3,6 +3,16 @@ import csv
 import os
 
 
+'''
+FORTRAN equation code: (Might not be correct equations)
+               DENNY(j,k) = ((1/SQRT(j*ROF3N))(1 + .25EXP(-((j*ROF3N)* &
+                (j*ROF3N))/(2*0.05*0.05)))/ &
+ -               (SQRT(2*pi)(.7j)))EXP(-(k*k/(4.2((j*ROF3N)*(j*ROF3N))))
+ +               (SQRT(2*pi)(.7j)))EXP(-((k*ZOF3N)*(k*ZOF3N)/ &
+ +               (4.2((j*ROF3N)*(j*ROF3N))))
+                ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N))
+'''
+
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
     """
