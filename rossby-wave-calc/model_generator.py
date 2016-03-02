@@ -11,6 +11,21 @@ FORTRAN equation code: (Might not be correct equations)
  +               (SQRT(2*pi)(.7j)))EXP(-((k*ZOF3N)*(k*ZOF3N)/ &
  +               (4.2((j*ROF3N)*(j*ROF3N))))
                 ANGGY(j,k) = SQRT((j*ROF3N)*2.1*1+1/(j*ROF3N))
+
+c---------------------------------------------
+c Filling array with Rossby-Wave model
+c G=gravitational constant, 1?
+c W= width of the density bump, .05?
+c pi constant? if not, add
+c
+c velocity(radius) : SQRT(r*2.1*G+G/r)
+c
+c density(radius, z) : ((1/SQRT(r))(1 + .25EXP(-(r*r)/(2W*W)))/(SQRT(2*pi)(.7r)))EXP(-(z*z/(4.2(r*r)))
+c  J at dr go to ITYPE 7
+c just read first numbers, not read ANGGY or DENNY, two equations above do that
+c thene it should work
+c L = 1 because it is rotating the grid made by hscf.f
+c---------------------------------------------
 '''
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
