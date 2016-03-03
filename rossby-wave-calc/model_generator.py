@@ -1,6 +1,7 @@
 __author__ = 'jacob'
 import csv
 import os
+import numpy as np
 
 
 '''
@@ -50,10 +51,34 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
 
     if type == 'RWI':
         print('Using Rossby Wave equations for disk')
+        denny = [[0 for x in range(jmax+2)] for x in range(jmax+2)]
+        anggy = [[0 for x in range(jmax+1)] for x in range(jmax+1)]
         with open("fort.2", 'w', newline='') as model_file:
-            writer = csv.writer(model_file, delimiter=" ")
+            writer = csv.writer(model_file, delimiter="  ")
+            # Write header line
             writer.writerow([str(polytropic_index)] + TODO: Stuff + [str(jmax)] + [str(kmax)])
-            #TODO INput coordinates of points into RWI equations and output them with 8 density points per line
-            # TODO Then for specific angular momentum, same thing
+            # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
+            # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
+
+            # Writing density array to fort.2
+            # Save the first 8 values of the column to a temp array then write it, repeat until end of denny
+            temp_denny = []
+            for row in range(len(denny)):
+                for column in range(jmax+2):
+                    temp_denny.append(denny[column][row])
+                    if len(temp_denny) == 8:
+                        writer.writerow(temp_denny)
+                        temp_denny = []
+            # Writing the angular momentum array to fort.2
+            # Repeat what was done for the denny array
+            temp_anggy = []
+            for row in range(len(anggy)):
+                for column in range(jmax+1):
+                    temp_anggy.append(anggy[column][row])
+                    if len(temp_denny) == 8:
+                        writer.writerow(temp_anggy)
+                        temp_anggy = []
+                        #TODO Input coordinates of points into RWI equations and output them with 8 density points per line
+                        # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
