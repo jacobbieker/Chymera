@@ -3,6 +3,7 @@ import csv
 import os
 import numpy as np
 import math
+from fortranformat import FortranRecordWriter
 
 '''
 FORTRAN equation code: (Might not be correct equations)
@@ -106,10 +107,9 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         for row in range(jmax + 1):
             for column in range(jmax + 1):
                 anggy[row][column] = 1
-        with open("fort.2", 'w') as model_file:
-            writer = csv.writer(model_file, delimiter=" ")
+        with open("temp", 'w') as model_file:
+            fortran_writer = FortranRecordWriter('8(1PE22.15,2X)')
             # Write header line
-            writer.writerow([str(polytropic_index)] + [str(jmax)] + [str(kmax)])
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
             # TODO Use Equations for Density and Angaulaer Momentum
@@ -119,12 +119,14 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             for row in range(jmax + 2):
                 for column in range(jmax + 2):
                     temp_denny.append(denny[column][row])
-                    if len(temp_denny) == 8:
-                        writer.writerow(temp_denny)
-                        temp_denny = []
-                    if row == jmax + 2 and column == jmax + 2:
-                        writer.writerow(temp_denny)
-                        temp_denny = []
+                    ''' if len(temp_denny) == 8:
+                         writer.writerow(temp_denny)
+                         temp_denny = []
+                     if row == jmax + 1 and column == jmax + 1:
+                         writer.writerow(temp_denny)
+                         temp_denny = []'''
+            output_text = fortran_writer.write(temp_denny)
+            model_file.write(output_text)
             # Writing the angular momentum array to fort.2
             # Repeat what was done for the denny array
             temp_anggy = []
