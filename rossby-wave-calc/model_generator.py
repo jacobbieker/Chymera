@@ -47,8 +47,15 @@ def p_nought(amplitude, radius, r_nought, delta_r, alpha):
     b_r = amplitude * gaussian_bump
     return math.pow(radius, -alpha) * b_r
 
-def surface_density_profile(gaussian_bump, amplitude, radius, r_nought, delta_r, h_r, z_height):
+def big_h(h, r):
+    return h*r
 
+def p_nought_coefficient(h, z, r):
+    return (1.0 - (z/big_h(h, r))**2)
+
+def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha):
+    density_at_point = p_nought(amplitude, radius, r_nought, delta_r, alpha=alpha) * p_nought_coefficient(h, z_height, radius)
+    return density_at_point
 
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
@@ -75,10 +82,20 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         print('Using Rossby Wave equations for disk')
         denny = [[0 for x in range(jmax+2)] for x in range(jmax+2)]
         anggy = [[0 for x in range(jmax+1)] for x in range(jmax+1)]
+
+        # Get the density array
+        for row in range(jmax+2):
+            for column in range(jmax+2):
+                denny[row][column] = surface_density_profile(1.4, row, 100, 20, 0.14, column, 0.5)
+
+        # Get angular momentum array
+        for row in range(jmax+1):
+            for column in range(jmax+1):
+                anggy[row][column] = 1
         with open("fort.2", 'w', newline='') as model_file:
             writer = csv.writer(model_file, delimiter="  ")
             # Write header line
-            writer.writerow([str(polytropic_index)] + TODO: Stuff + [str(jmax)] + [str(kmax)])
+            writer.writerow([str(polytropic_index)] + [str(jmax)] + [str(kmax)])
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
             #TODO Use Equations for Density and Angaulaer Momentum
