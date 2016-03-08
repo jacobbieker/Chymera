@@ -2,6 +2,7 @@ __author__ = 'jacob'
 import csv
 import os
 import numpy as np
+import math
 
 
 '''
@@ -28,6 +29,14 @@ c thene it should work
 c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
 '''
+
+def gaussian(x, mu, sig):
+    distribution =  np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+    scaled = (1.0/(math.sqrt(2*math.pi)*sig))*distribution
+    return scaled
+
+def surface_density_profile(gaussian_bump, amplitude, radius, r_nought, delta_r, h_r_nought):
+
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
@@ -59,11 +68,11 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             writer.writerow([str(polytropic_index)] + TODO: Stuff + [str(jmax)] + [str(kmax)])
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
-
+            #TODO Use Equations for Density and Angaulaer Momentum
             # Writing density array to fort.2
             # Save the first 8 values of the column to a temp array then write it, repeat until end of denny
             temp_denny = []
-            for row in range(len(denny)):
+            for row in range(jmax+2):
                 for column in range(jmax+2):
                     temp_denny.append(denny[column][row])
                     if len(temp_denny) == 8:
@@ -72,7 +81,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             # Writing the angular momentum array to fort.2
             # Repeat what was done for the denny array
             temp_anggy = []
-            for row in range(len(anggy)):
+            for row in range(jmax+1):
                 for column in range(jmax+1):
                     temp_anggy.append(anggy[column][row])
                     if len(temp_denny) == 8:
