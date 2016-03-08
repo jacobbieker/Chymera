@@ -31,11 +31,24 @@ c---------------------------------------------
 '''
 
 def gaussian(x, mu, sig):
+    '''
+    Return the gaussian distribution
+    :param x: Generally, r, the radius
+    :param mu: Generall r_nought, the center of the bump
+    :param sig: delta_r, the width of the bump
+    :return: The gaussian distribution, not scaled for the amplitude
+    '''
     distribution =  np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
     scaled = (1.0/(math.sqrt(2*math.pi)*sig))*distribution
     return scaled
 
-def surface_density_profile(gaussian_bump, amplitude, radius, r_nought, delta_r, h_r_nought):
+def p_nought(amplitude, radius, r_nought, delta_r, alpha):
+    gaussian_bump = amplitude * gaussian(radius, r_nought, delta_r)
+    b_r = amplitude * gaussian_bump
+    return math.pow(radius, -alpha) * b_r
+
+def surface_density_profile(gaussian_bump, amplitude, radius, r_nought, delta_r, h_r, z_height):
+
 
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
