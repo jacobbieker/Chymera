@@ -108,7 +108,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             for column in range(jmax + 1):
                 anggy[row][column] = 1
         with open("temp", 'w') as model_file:
-            fortran_writer = FortranRecordWriter('8(1PE22.15,2X)')
+            fortran_writer = FortranRecordWriter('8(1PE10.3,2X)')
             # Write header line
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
