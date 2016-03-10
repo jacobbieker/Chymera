@@ -97,7 +97,7 @@ def gradient_phi_z(radius, z, mass_star, g):
     return top / bottom
 
 
-def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
     e_term = math.exp(-(radius - r_nought)**2/(2*delta_r**2))
     alpha_term = radius**(-alpha)
     ampltiude_term = -(2*polytropic_index*z_height*ampltiude)/((radius*h)**2)
@@ -105,7 +105,7 @@ def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha
     return e_term*alpha_term*ampltiude_term*polytropic_term
 
 
-def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
     exponential_term = -(radius-r_nought)**2/((2*delta_r**2))
     inside_polytropic = (1-(z_height**2)/((radius*h)**2))
     over_h_term = 2*ampltiude*polytropic_index*z_height**2*radius**(-alpha-3)*math.exp(exponential_term)* \
@@ -117,6 +117,17 @@ def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha
     final_delta_r_term = over_delta_r_term/(delta_r**2)
     final_term = final_h_term - no_denom_term - final_delta_r_term
     return final_term
+
+
+def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, density, mass_star, g, jmin):
+    pressure_gradient_grid = []
+    gravitational_gradient_grid = []
+    pressure_gradient_grid.append((-(1/density)*gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height,
+                                                                    alpha, polytropic_index),
+                                   -(1/density)*gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index)))
+    gravitational_gradient_grid.append((-gradient_phi_r(radius, mass_star=mass_star, z=z_height, g=g),
+                                        -gradient_phi_z(radius, mass_star=mass_star, z=z_height, g=g)))
+
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
