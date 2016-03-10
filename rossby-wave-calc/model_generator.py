@@ -30,7 +30,7 @@ c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
 '''
 
-
+#TODO Add Length Scale
 def gaussian(x, mu, sig):
     '''
     Return the gaussian distribution
@@ -71,6 +71,15 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
     else:
         density_at_point = 0.000
     return density_at_point
+
+
+# Angular Momentum functions
+def pressure(density, constant, polytropic_index):
+    power = 1 + 1/polytropic_index
+    return constant * density**power
+
+def phi(radius, z, mass_star):
+    coefficient = 1 - (z**2/(2*radius**2))
 
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
