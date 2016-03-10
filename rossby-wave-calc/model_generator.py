@@ -78,9 +78,45 @@ def pressure(density, constant, polytropic_index):
     power = 1 + 1/polytropic_index
     return constant * density**power
 
-def phi(radius, z, mass_star):
-    coefficient = 1 - (z**2/(2*radius**2))
 
+def phi(radius, z, mass_star, g):
+    coefficient = 1 - (z**2/(2*radius**2))
+    gravity_and_mass = (-g*mass_star)/radius
+    return gravity_and_mass*coefficient
+
+
+def gradient_phi_r(radius, z, mass_star, g):
+    top = g*mass_star*(2*radius**2-3*z**2)
+    bottom = 2*radius**4
+    return top/bottom
+
+
+def gradient_phi_z(radius, z, mass_star, g):
+    top = g*mass_star*z
+    bottom = radius**3
+    return top / bottom
+
+
+def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+    e_term = math.exp(-(radius - r_nought)**2/(2*delta_r**2))
+    alpha_term = radius**(-alpha)
+    ampltiude_term = -(2*polytropic_index*z_height*ampltiude)/((radius*h)**2)
+    polytropic_term = (1-(z_height**2)/((radius*h)**2))**(polytropic_index-1)
+    return e_term*alpha_term*ampltiude_term*polytropic_term
+
+
+def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+    exponential_term = -(radius-r_nought)**2/((2*delta_r**2))
+    inside_polytropic = (1-(z_height**2)/((radius*h)**2))
+    over_h_term = 2*ampltiude*polytropic_index*z_height**2*radius**(-alpha-3)*math.exp(exponential_term)* \
+                  inside_polytropic**(polytropic_index-1)
+    final_h_term = over_h_term/(h**2)
+    no_denom_term = alpha*ampltiude*radius**(-alpha-1)*math.exp(exponential_term)*inside_polytropic**polytropic_index
+    over_delta_r_term = ampltiude*radius**(-alpha)*(radius-r_nought)*math.exp(exponential_term)*inside_polytropic \
+                                                                                                **polytropic_index
+    final_delta_r_term = over_delta_r_term/(delta_r**2)
+    final_term = final_h_term - no_denom_term - final_delta_r_term
+    return final_term
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
