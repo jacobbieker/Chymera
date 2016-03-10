@@ -1056,7 +1056,7 @@ c routine.
 !      mass_star = zero
 !      mass_star = 3.01d-1
 !      mass_star = 5.0d1
-       mass_star = 1.0d1
+       mass_star = 10.0d1
       if(mass_star.gt.0.0) then
         Msyscgs=Mstar*Msuncgs*(1.d0+1.d0/mass_star)
 !        Msyscgs=Mstar*Msuncgs

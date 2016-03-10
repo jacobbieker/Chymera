@@ -22,7 +22,7 @@
       parameter(pot3kmax=64,pot3kmax1=pot3kmax+1,pot3kmax2=pot3kmax+2)
 
 !  Minimum radial grid point, for cutting out central star.
-      parameter (jmin=2,jmin1=jmin-1,jmin2=jmin-2)
+      parameter (jmin=10,jmin1=jmin-1,jmin2=jmin-2)
 
 !  Other parameters.
       integer hj,hk,hj1,hj2,hk1,hk2,itable
