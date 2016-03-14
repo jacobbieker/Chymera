@@ -3,7 +3,7 @@ import csv
 import os
 import numpy as np
 import math
-from fortranformat import FortranRecordWriter
+from fortranformat import FortranRecordWriter, FortranRecordReader
 
 '''
 FORTRAN equation code: (Might not be correct equations)
@@ -46,28 +46,28 @@ def gaussian(x, mu, sig):
 
 def p_nought(amplitude, radius, r_nought, delta_r, alpha):
     gaussian_bump = amplitude * gaussian(radius, r_nought, delta_r)
-    print("Gaussian Bump: " + str(gaussian_bump))
+    #print("Gaussian Bump: " + str(gaussian_bump))
     b_r = amplitude * gaussian_bump
-    print("B(r): " + str(b_r))
+    #print("B(r): " + str(b_r))
     return math.pow(radius, -alpha) * b_r
 
 
 def big_h(h, r):
-    print("H: " + str(h * r))
+    #print("H: " + str(h * r))
     return h * r
 
 
 def p_nought_coefficient(h, z, r):
-    print("little h: " + str(h))
-    print("Z: " + str(z))
-    print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
+    #print("little h: " + str(h))
+    #print("Z: " + str(z))
+    #print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
     return (1.0 - (z / big_h(h, r)) ** 2)
 
 
-def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin, rof3n, zof3n):
     if radius > jmin and z_height <= big_h(h, radius):
-        density_at_point = p_nought(amplitude, radius, r_nought, delta_r, alpha=alpha) * (p_nought_coefficient(h, z_height,
-                                                                                                               radius)) ** polytropic_index
+        density_at_point = p_nought(amplitude, radius*rof3n, r_nought*rof3n, delta_r*rof3n, alpha=alpha) * (p_nought_coefficient(h, z_height*zof3n,
+                                                                                                                                 radius*rof3n)) ** polytropic_index
     else:
         density_at_point = 0.000
     return density_at_point
@@ -129,8 +129,30 @@ def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, pol
                                         -gradient_phi_z(radius, mass_star=mass_star, z=z_height, g=g)))
 
 
+def angular_velocity(radius, rof3n, g, mass_star):
+    l = math.sqrt((g*mass_star)/(radius*rof3n)**3)
+    return l
+
+
+def unit_mass(radius, rof3n, z, zof3n, density):
+    mass = (rof3n)*(zof3n)*density
+    return mass
+
+
+def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
+    velocity = radius*rof3n
+    omega = math.sqrt((g*mass_star)/(radius*rof3n)**2)
+    return velocity*omega
+
+
+def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
+    if radius >= jmin:
+        return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star)*(radius*rof3n)*unit_mass(radius, rof3n, z, zof3n, density)
+    else:
+        return 0.0
+
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
-                    xwidth, xnorm, type):
+                    xwidth, xnorm, type, jmin):
     """
     Generate fort.2 model file for CHYMERA Code
     :param polytropic_index: Polytropic index of star
@@ -154,16 +176,40 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         denny = [[0 for x in range(jmax + 2)] for x in range(jmax + 2)]
         anggy = [[0 for x in range(jmax + 1)] for x in range(jmax + 1)]
 
+        constants_array = []
+        header_line = ""
+        with open("fort.2", "r") as example_file:
+            header_line = example_file.readline()
+            print(header_line)
+        constants_array = header_line.split(" ")
+        # Remove the first empty parts that come from the '3X' Fortran Formatting
+        del constants_array[0]
+        del constants_array[0]
+        del constants_array[0]
+        del constants_array[0]
+        print(constants_array)
+        # Convert to floats
+        for element in range(len(constants_array)):
+            constants_array[element] = float(constants_array[element])
+        print(constants_array)
+        '''
+        Format of first line in fort.2 file
+        PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
+&        A1NEWZ,JREQ,KZPOL
+        '''
+
         # Get the density array
         for row in range(jmax + 2):
             for column in range(jmax + 2):
-                denny[row][column] = surface_density_profile(1.4, row + 1, 100, 20, 0.14, column + 1, 0.5, 1.5, 2)
+                denny[row][column] = surface_density_profile(1.4, row + 1, 100, 20, 0.14, column + 1, 0.5, constants_array[0], jmin, constants_array[6], constants_array[7])
 
         # Get angular momentum array
         for row in range(jmax + 1):
             for column in range(jmax + 1):
-                anggy[row][column] = 1
+                anggy[row][column] = angular_momentum(row+1, constants_array[6], column, constants_array[7], denny[row][column], 1, 1, jmin)
+
         with open("temp", 'w') as model_file:
+            model_file.write(header_line)
             fortran_writer = FortranRecordWriter('8(1PE10.3,2X)')
             # Write header line
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
@@ -189,13 +235,12 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             for row in range(jmax + 1):
                 for column in range(jmax + 1):
                     temp_anggy.append(anggy[column][row])
-                    if len(temp_denny) == 8:
-                        writer.writerow(temp_anggy)
-                        temp_anggy = []
-                        # TODO Input coordinates of points into RWI equations and output them with 8 density points per line
-                        # TODO Then for specific angular momentum, same thing
+            output_text = fortran_writer.write(temp_anggy)
+            model_file.write(output_text)
+            # TODO Input coordinates of points into RWI equations and output them with 8 density points per line
+            # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
 
 
-generate_fort_2(1.5, 2.0, 256, 256, 10, 10, -10, 50, 1, 30, 30, 30, 'RWI')
+generate_fort_2(1.5, 2.0, 256, 256, 10, 10, -10, 50, 1, 30, 30, 30, 'RWI', 64)
