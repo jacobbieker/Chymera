@@ -224,7 +224,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         # Get angular momentum array
         for row in range(jmax + 1):
             for column in range(jmax + 1):
-                anggy[row][column] = angular_momentum(row + 1, constants_array[6], column, constants_array[7],
+                anggy[row][column] = angular_momentum(row + 1, constants_array[6], column+1, constants_array[7],
                                                       denny[row][column], 1, 1, jout)
         print("Length of Anggy: " + str(len(anggy)))
 
