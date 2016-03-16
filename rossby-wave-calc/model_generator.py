@@ -217,14 +217,14 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         # Get the density array
         for column in range(jmax + 2):
             for row in range(jmax + 2):
-                denny[row][column] = surface_density_profile(1.4, row + 1, 100, 20, 0.14, column + 1, 0.5,
+                denny[row][column] = surface_density_profile(1.4, row + 1, 90, 60, 0.14, column + 1, 0.5,
                                                              constants_array[0], jout, constants_array[6],
                                                              constants_array[7])
 
         # Get angular momentum array
         for row in range(jmax + 1):
             for column in range(jmax + 1):
-                anggy[row][column] = angular_momentum(row + 1, constants_array[6], column+1, constants_array[7],
+                anggy[column][row] = angular_momentum(row + 1, constants_array[6], column+1, constants_array[7],
                                                       denny[row][column], 1, 1, jout)
         print("Length of Anggy: " + str(len(anggy)))
 
