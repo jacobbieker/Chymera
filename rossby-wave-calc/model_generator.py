@@ -150,6 +150,12 @@ def unit_mass(radius, rof3n, z, zof3n, density):
     return mass
 
 
+def velocity_squared(g,mass_star, h, radius, rof3n):
+    ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
+    star_influence = (g*mass_star)/(radius*rof3n)
+    second_half = 1 - (3*(h*radius*rof3n)**2) / (2*(radius*rof3n)**2) + (h*radius*rof3n)/(radius*rof3n) * h
+    return star_influence*second_half
+
 def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
     velocity = radius * rof3n
     omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
@@ -158,11 +164,12 @@ def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
 
 def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
     if radius >= jmin:
-        return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
-                                                                                                                 rof3n,
-                                                                                                                 z,
-                                                                                                                 zof3n,
-                                                                                                                 density)
+        return (radius * rof3n) * unit_mass(radius, rof3n, z, zof3n, density) * math.sqrt(velocity_squared(g, mass_star, h=0.14, radius=radius, rof3n=rof3n))
+        #return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
+        #                                                                                                        rof3n,
+        #                                                                                                       z,
+        #                                                                                                      zof3n,
+        #                                                                                                     density)
     else:
         return 0.0
 
@@ -238,7 +245,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             temp_denny = []
             for row in range(jmax + 2):
                 for column in range(jmax + 2):
-                    temp_denny.append(denny[column][row])
+                    temp_denny.append(denny[row][column])
                     ''' if len(temp_denny) == 8:
                         writer.writerow(temp_denny)
                         temp_denny = []
@@ -253,7 +260,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
             temp_anggy = []
             for row in range(jmax + 1):
                 for column in range(jmax + 1):
-                    temp_anggy.append(anggy[column][row])
+                    temp_anggy.append(anggy[row][column])
             print("Length of Temp Anggy: " + str(len(temp_anggy)))
             output_text = fortran_writer.write(temp_anggy)
             output_text += "\n"
