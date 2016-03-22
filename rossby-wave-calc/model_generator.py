@@ -122,29 +122,77 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
 
 # Angular Momentum functions
 def pressure(density, constant, polytropic_index):
+    """
+    Calculate pressure 
+    :rtype : float
+    :param density: density at point 
+    :param constant: coefficient
+    :param polytropic_index: polytropic index of model
+    :return: Pressure at that density
+    """
     power = 1 + 1 / polytropic_index
     return constant * density ** power
 
 
 def phi(radius, z, mass_star, g):
+    """
+    Calculate phi
+    :rtype : float
+    :param radius: radius, in radius * length scale
+    :param z: z height, in z * zof3n
+    :param mass_star: mass of star
+    :param g: graviational constant
+    :return: Phi
+    """
     coefficient = 1 - (z ** 2 / (2 * radius ** 2))
     gravity_and_mass = (-g * mass_star) / radius
     return gravity_and_mass * coefficient
 
 
 def gradient_phi_r(radius, z, mass_star, g):
+    """
+    Calculate gradient of phi with respect to radius
+    :rtype : float
+    :param radius: Radius, in terms of radius * rof3n
+    :param z: z, in terms of z * zof3n
+    :param mass_star: mass of star
+    :param g: gravitational constant
+    :return: Gradient Phi
+    """
     top = g * mass_star * (2 * radius ** 2 - 3 * z ** 2)
     bottom = 2 * radius ** 4
     return top / bottom
 
 
 def gradient_phi_z(radius, z, mass_star, g):
+    """
+    Calculate gradient of phi with respect to height
+    :rtype : float
+    :param radius: Radius, in terms of radius * rof3n
+    :param z: z, in terms of z * zof3n
+    :param mass_star: mass of star
+    :param g: gravitational constant
+    :return: Gradient Phi
+    """
     top = g * mass_star * z
     bottom = radius ** 3
     return top / bottom
 
 
 def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
+    """
+    Calculate the gradient of pressure in height
+    :rtype : float
+    :param ampltiude: Amplitude of bump
+    :param radius: radius, in terms of radius * rof3n
+    :param r_nought: center of bump, in terms of r_nought * rof3n
+    :param delta_r: width of bump, in terms of delta_r * rof3n
+    :param h: little h
+    :param z_height: height of point, in terms of z * zof3n
+    :param alpha: coefficient
+    :param polytropic_index: polytropic index of model
+    :return: Gradient in z direction of pressure
+    """
     e_term = math.exp(-(radius - r_nought) ** 2 / (2 * delta_r ** 2))
     alpha_term = radius ** (-alpha)
     ampltiude_term = -(2 * polytropic_index * z_height * ampltiude) / ((radius * h) ** 2)
@@ -153,6 +201,19 @@ def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha
 
 
 def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
+    """
+    Calculate the gradient of pressure in radius
+    :rtype : float
+    :param ampltiude: Amplitude of bump
+    :param radius: radius, in terms of radius * rof3n
+    :param r_nought: center of bump, in terms of r_nought * rof3n
+    :param delta_r: width of bump, in terms of delta_r * rof3n
+    :param h: little h
+    :param z_height: height of point, in terms of z * zof3n
+    :param alpha: coefficient
+    :param polytropic_index: polytropic index of model
+    :return: Gradient in r direction of pressure
+    """
     exponential_term = -(radius - r_nought) ** 2 / ((2 * delta_r ** 2))
     inside_polytropic = (1 - (z_height ** 2) / ((radius * h) ** 2))
     over_h_term = 2 * ampltiude * polytropic_index * z_height ** 2 * radius ** (-alpha - 3) * math.exp(
@@ -169,8 +230,22 @@ def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha
     return final_term
 
 
-def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, density, mass_star, g,
-                   jmin):
+def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, density, mass_star, g):
+    """
+    Calculate velocity field
+    :param ampltiude: Amplitude of density bump
+    :param radius: radius in terms of radius * rof3n
+    :param r_nought: center of bump, in r_nought * rof3n
+    :param delta_r: width of bump, in delta_r * rof3n
+    :param h: little h
+    :param z_height: height, in terms of z * zof3n
+    :param alpha: coefficient
+    :param polytropic_index: polytopic index of model
+    :param density: density at the point
+    :param mass_star: mass of the star
+    :param g: graviational constant
+    :return: Value for the velocity field at that point
+    """
     pressure_gradient_grid = []
     gravitational_gradient_grid = []
     pressure_gradient_grid.append(
@@ -182,25 +257,62 @@ def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, pol
                                         -gradient_phi_z(radius, mass_star=mass_star, z=z_height, g=g)))
 
 
-def angular_velocity(radius, rof3n, g, mass_star):
-    l = math.sqrt((g * mass_star) / (radius * rof3n) ** 3)
+def angular_velocity(radius, g, mass_star):
+    """
+    Return angular velocity at a given radius, assumed that velocity is only along cylindrical coordinates
+    :rtype : float
+    :param radius: radius, in terms of radius * rof3n
+    :param g: graviational constant
+    :param mass_star: mass of star
+    :return: Angular momentum of radius
+    """
+    l = math.sqrt((g * mass_star) / (radius) ** 3)
     return l
 
 
-def unit_mass(radius, rof3n, z, zof3n, density):
-    mass = (rof3n) * (zof3n) * density
+def unit_mass(rof3n, zof3n, density):
+    """
+    Calculate unit mass for the grid
+    :rtype : float
+    :param rof3n: length scale of radius
+    :param zof3n: length scale of height
+    :param density: density at a point
+    :return: Unit mass
+    """
+    mass = rof3n * zof3n * density
     return mass
 
 
-def velocity_squared(g, mass_star, h, radius, rof3n):
+def velocity_squared(g, mass_star, h, radius):
+    """
+    Calculate v^2 for a given radius
+    :rtype : float
+    :param g: graviational constant
+    :param mass_star: mass of the star
+    :param h: little h
+    :param radius: radius, in terms of radius * rof3n
+    :return: v^2 for a point
+    """
     ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
-    star_influence = (g * mass_star) / (radius * rof3n)
-    second_half = 1 - (3 * (h * radius * rof3n) ** 2) / (2 * (radius * rof3n) ** 2) + (h * radius * rof3n) / (
-        radius * rof3n) * h
+    star_influence = (g * mass_star) / (radius)
+    second_half = 1 - (3 * (h * radius) ** 2) / (2 * (radius) ** 2) + (h * radius) / (
+        radius) * h
     return star_influence * second_half
 
 
-def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
+def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
+    """
+    Calculate angular velocity
+    :rtype : float
+    :param radius: 
+    :param rof3n: 
+    :param z: height, in terms of z * zof3n
+    :param density: Density at point
+    :param g: graviational constant
+    :param mass_star: mass of star
+    :return: Angular velocty for a given point
+    """
+    #TODO Figure out what this does
     velocity = radius * rof3n
     omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
     return velocity * omega
@@ -219,16 +331,13 @@ def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
     :param jmin: minimum radius in which to compute the angular momentum
     :return: The angular momentum for that grid point
     '''
-    if radius >= jmin:
-        return (radius * rof3n) * unit_mass(radius, rof3n, z, zof3n, density) * math.sqrt(
-            velocity_squared(g, mass_star, h=0.14, radius=radius, rof3n=rof3n))
-        # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
-        #                                                                                                        rof3n,
-        #                                                                                                       z,
-        #                                                                                                      zof3n,
-        #                                                                                                     density)
-    else:
-        return 0.0
+    return (radius * rof3n) * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
+        velocity_squared(g=g, mass_star=mass_star, h=0.14, radius=radius * rof3n))
+    # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
+    #                                                                                                        rof3n,
+    #                                                                                                       z,
+    #                                                                                                      zof3n,
+    #                                                                                                     density)
 
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
