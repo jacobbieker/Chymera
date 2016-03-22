@@ -46,6 +46,15 @@ def gaussian(x, mu, sig):
 
 
 def p_nought(amplitude, radius, r_nought, delta_r, alpha):
+    '''
+    Calculates the P_o, which gives most of the bump for the model
+    :param amplitude: Amplitude of the bump
+    :param radius: Radius of the point, in radius * rof3n
+    :param r_nought: Center point of bump, in r_nought * rof3n
+    :param delta_r: Width of bump, in delta_r * rof3n
+    :param alpha: coefficient
+    :return: P_o
+    '''
     gaussian_bump = amplitude * gaussian(radius, r_nought, delta_r)
     # print("Gaussian Bump: " + str(gaussian_bump))
     b_r = amplitude * gaussian_bump
@@ -54,19 +63,47 @@ def p_nought(amplitude, radius, r_nought, delta_r, alpha):
 
 
 def big_h(h, r):
+    '''
+    Calculates the H(r) value for the model
+    :param h: little h value
+    :param r: radius to calculate for
+    :return: H(r) value for the model
+    '''
     # print("H: " + str(h * r))
     return h * r
 
 
 def p_nought_coefficient(h, z, r):
+    '''
+    Calculates the coefficent for P_o in 
+    :param h: little h value
+    :param z: height of point
+    :param r: radius from center of point
+    :return: Coefficient of P_o
+    '''
     # print("little h: " + str(h))
     # print("Z: " + str(z))
     # print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
-    return (1.0 - (z / big_h(h, r)) ** 2)
+    return 1.0 - (z / big_h(h, r)) ** 2
 
 
 def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin, rof3n,
                             zof3n):
+    '''
+    Calculates the surface density for the grid point in terms of the desired Gaussian density bump
+    :param amplitude: Amplitude of teh bump
+    :param radius: radius in grid units
+    :param r_nought: center of density bump
+    :param delta_r: width of density bump
+    :param h: disk thickness
+    :param z_height: height of grid point
+    :param alpha: coefficient given in papers
+    :param polytropic_index: polytropic index of model
+    :param jmin: min distance in which to calculate the angular momentum
+    :param rof3n: length scale for r grid points
+    :param zof3n: length scale for z grid points
+    :return: Value for density at the given point
+    '''
     if radius > jmin and z_height <= big_h(h, radius):
         density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) * (
                                                                                                                      p_nought_coefficient(
@@ -150,11 +187,13 @@ def unit_mass(radius, rof3n, z, zof3n, density):
     return mass
 
 
-def velocity_squared(g,mass_star, h, radius, rof3n):
+def velocity_squared(g, mass_star, h, radius, rof3n):
     ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
-    star_influence = (g*mass_star)/(radius*rof3n)
-    second_half = 1 - (3*(h*radius*rof3n)**2) / (2*(radius*rof3n)**2) + (h*radius*rof3n)/(radius*rof3n) * h
-    return star_influence*second_half
+    star_influence = (g * mass_star) / (radius * rof3n)
+    second_half = 1 - (3 * (h * radius * rof3n) ** 2) / (2 * (radius * rof3n) ** 2) + (h * radius * rof3n) / (
+        radius * rof3n) * h
+    return star_influence * second_half
+
 
 def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
     velocity = radius * rof3n
@@ -163,9 +202,22 @@ def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
 
 
 def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
+    '''
+    Calculates the angular momentum for the grid point (r, z) from the density from surface_density_profile function
+    :param radius: Radius (in grid units)
+    :param rof3n: Length scale factor for grid in r direction
+    :param z: height (in grid units)
+    :param zof3n: length scale factor for grid in z direction
+    :param density: Density at the grid point (r, z)
+    :param g: gravitational constant
+    :param mass_star: mass of the star
+    :param jmin: minimum radius in which to compute the angular momentum
+    :return: The angular momentum for that grid point
+    '''
     if radius >= jmin:
-        return (radius * rof3n) * unit_mass(radius, rof3n, z, zof3n, density) * math.sqrt(velocity_squared(g, mass_star, h=0.14, radius=radius, rof3n=rof3n))
-        #return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
+        return (radius * rof3n) * unit_mass(radius, rof3n, z, zof3n, density) * math.sqrt(
+            velocity_squared(g, mass_star, h=0.14, radius=radius, rof3n=rof3n))
+        # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
         #                                                                                                        rof3n,
         #                                                                                                       z,
         #                                                                                                      zof3n,
@@ -224,14 +276,14 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         # Get the density array
         for column in range(jmax + 2):
             for row in range(jmax + 2):
-                denny[row][column] = surface_density_profile(1.4, row + 1, 90, 60, 0.14, column + 1, 0.5,
+                denny[row][column] = surface_density_profile(1.4, row + 1, 90, 20, 0.14, column + 1, 0.5,
                                                              constants_array[0], jout, constants_array[6],
                                                              constants_array[7])
 
         # Get angular momentum array
         for row in range(jmax + 1):
             for column in range(jmax + 1):
-                anggy[column][row] = angular_momentum(row + 1, constants_array[6], column+1, constants_array[7],
+                anggy[column][row] = angular_momentum(row + 1, constants_array[6], column + 1, constants_array[7],
                                                       denny[row][column], 1, 1, jout)
         print("Length of Anggy: " + str(len(anggy)))
 
