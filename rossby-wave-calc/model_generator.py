@@ -3,7 +3,7 @@ import csv
 import os
 import numpy as np
 import math
-from fortranformat import FortranRecordWriter
+from fortranformat import FortranRecordWriter, FortranRecordReader
 
 '''
 FORTRAN equation code: (Might not be correct equations)
@@ -30,7 +30,8 @@ c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
 '''
 
-#TODO Add Length Scale
+
+# TODO Add Length Scale
 def gaussian(x, mu, sig):
     '''
     Return the gaussian distribution
@@ -46,28 +47,32 @@ def gaussian(x, mu, sig):
 
 def p_nought(amplitude, radius, r_nought, delta_r, alpha):
     gaussian_bump = amplitude * gaussian(radius, r_nought, delta_r)
-    print("Gaussian Bump: " + str(gaussian_bump))
+    # print("Gaussian Bump: " + str(gaussian_bump))
     b_r = amplitude * gaussian_bump
-    print("B(r): " + str(b_r))
+    # print("B(r): " + str(b_r))
     return math.pow(radius, -alpha) * b_r
 
 
 def big_h(h, r):
-    print("H: " + str(h * r))
+    # print("H: " + str(h * r))
     return h * r
 
 
 def p_nought_coefficient(h, z, r):
-    print("little h: " + str(h))
-    print("Z: " + str(z))
-    print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
+    # print("little h: " + str(h))
+    # print("Z: " + str(z))
+    # print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
     return (1.0 - (z / big_h(h, r)) ** 2)
 
 
-def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin):
+def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin, rof3n,
+                            zof3n):
     if radius > jmin and z_height <= big_h(h, radius):
-        density_at_point = p_nought(amplitude, radius, r_nought, delta_r, alpha=alpha) * (p_nought_coefficient(h, z_height,
-                                                                                                               radius)) ** polytropic_index
+        density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) * (
+                                                                                                                     p_nought_coefficient(
+                                                                                                                         h,
+                                                                                                                         z_height * zof3n,
+                                                                                                                         radius * rof3n)) ** polytropic_index
     else:
         density_at_point = 0.000
     return density_at_point
@@ -75,58 +80,98 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
 
 # Angular Momentum functions
 def pressure(density, constant, polytropic_index):
-    power = 1 + 1/polytropic_index
-    return constant * density**power
+    power = 1 + 1 / polytropic_index
+    return constant * density ** power
 
 
 def phi(radius, z, mass_star, g):
-    coefficient = 1 - (z**2/(2*radius**2))
-    gravity_and_mass = (-g*mass_star)/radius
-    return gravity_and_mass*coefficient
+    coefficient = 1 - (z ** 2 / (2 * radius ** 2))
+    gravity_and_mass = (-g * mass_star) / radius
+    return gravity_and_mass * coefficient
 
 
 def gradient_phi_r(radius, z, mass_star, g):
-    top = g*mass_star*(2*radius**2-3*z**2)
-    bottom = 2*radius**4
-    return top/bottom
+    top = g * mass_star * (2 * radius ** 2 - 3 * z ** 2)
+    bottom = 2 * radius ** 4
+    return top / bottom
 
 
 def gradient_phi_z(radius, z, mass_star, g):
-    top = g*mass_star*z
-    bottom = radius**3
+    top = g * mass_star * z
+    bottom = radius ** 3
     return top / bottom
 
 
 def gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
-    e_term = math.exp(-(radius - r_nought)**2/(2*delta_r**2))
-    alpha_term = radius**(-alpha)
-    ampltiude_term = -(2*polytropic_index*z_height*ampltiude)/((radius*h)**2)
-    polytropic_term = (1-(z_height**2)/((radius*h)**2))**(polytropic_index-1)
-    return e_term*alpha_term*ampltiude_term*polytropic_term
+    e_term = math.exp(-(radius - r_nought) ** 2 / (2 * delta_r ** 2))
+    alpha_term = radius ** (-alpha)
+    ampltiude_term = -(2 * polytropic_index * z_height * ampltiude) / ((radius * h) ** 2)
+    polytropic_term = (1 - (z_height ** 2) / ((radius * h) ** 2)) ** (polytropic_index - 1)
+    return e_term * alpha_term * ampltiude_term * polytropic_term
 
 
 def gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index):
-    exponential_term = -(radius-r_nought)**2/((2*delta_r**2))
-    inside_polytropic = (1-(z_height**2)/((radius*h)**2))
-    over_h_term = 2*ampltiude*polytropic_index*z_height**2*radius**(-alpha-3)*math.exp(exponential_term)* \
-                  inside_polytropic**(polytropic_index-1)
-    final_h_term = over_h_term/(h**2)
-    no_denom_term = alpha*ampltiude*radius**(-alpha-1)*math.exp(exponential_term)*inside_polytropic**polytropic_index
-    over_delta_r_term = ampltiude*radius**(-alpha)*(radius-r_nought)*math.exp(exponential_term)*inside_polytropic \
-                                                                                                **polytropic_index
-    final_delta_r_term = over_delta_r_term/(delta_r**2)
+    exponential_term = -(radius - r_nought) ** 2 / ((2 * delta_r ** 2))
+    inside_polytropic = (1 - (z_height ** 2) / ((radius * h) ** 2))
+    over_h_term = 2 * ampltiude * polytropic_index * z_height ** 2 * radius ** (-alpha - 3) * math.exp(
+        exponential_term) * \
+                  inside_polytropic ** (polytropic_index - 1)
+    final_h_term = over_h_term / (h ** 2)
+    no_denom_term = alpha * ampltiude * radius ** (-alpha - 1) * math.exp(
+        exponential_term) * inside_polytropic ** polytropic_index
+    over_delta_r_term = ampltiude * radius ** (-alpha) * (radius - r_nought) * math.exp(
+        exponential_term) * inside_polytropic \
+                            ** polytropic_index
+    final_delta_r_term = over_delta_r_term / (delta_r ** 2)
     final_term = final_h_term - no_denom_term - final_delta_r_term
     return final_term
 
 
-def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, density, mass_star, g, jmin):
+def velocity_field(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, density, mass_star, g,
+                   jmin):
     pressure_gradient_grid = []
     gravitational_gradient_grid = []
-    pressure_gradient_grid.append((-(1/density)*gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height,
-                                                                    alpha, polytropic_index),
-                                   -(1/density)*gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index)))
+    pressure_gradient_grid.append(
+        (-(1 / density) * gradient_pressure_z(ampltiude, radius, r_nought, delta_r, h, z_height,
+                                              alpha, polytropic_index),
+         -(1 / density) * gradient_pressure_r(ampltiude, radius, r_nought, delta_r, h, z_height, alpha,
+                                              polytropic_index)))
     gravitational_gradient_grid.append((-gradient_phi_r(radius, mass_star=mass_star, z=z_height, g=g),
                                         -gradient_phi_z(radius, mass_star=mass_star, z=z_height, g=g)))
+
+
+def angular_velocity(radius, rof3n, g, mass_star):
+    l = math.sqrt((g * mass_star) / (radius * rof3n) ** 3)
+    return l
+
+
+def unit_mass(radius, rof3n, z, zof3n, density):
+    mass = (rof3n) * (zof3n) * density
+    return mass
+
+
+def velocity_squared(g,mass_star, h, radius, rof3n):
+    ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
+    star_influence = (g*mass_star)/(radius*rof3n)
+    second_half = 1 - (3*(h*radius*rof3n)**2) / (2*(radius*rof3n)**2) + (h*radius*rof3n)/(radius*rof3n) * h
+    return star_influence*second_half
+
+def angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star):
+    velocity = radius * rof3n
+    omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
+    return velocity * omega
+
+
+def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
+    if radius >= jmin:
+        return (radius * rof3n) * unit_mass(radius, rof3n, z, zof3n, density) * math.sqrt(velocity_squared(g, mass_star, h=0.14, radius=radius, rof3n=rof3n))
+        #return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
+        #                                                                                                        rof3n,
+        #                                                                                                       z,
+        #                                                                                                      zof3n,
+        #                                                                                                     density)
+    else:
+        return 0.0
 
 
 def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
@@ -154,48 +199,76 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         denny = [[0 for x in range(jmax + 2)] for x in range(jmax + 2)]
         anggy = [[0 for x in range(jmax + 1)] for x in range(jmax + 1)]
 
+        constants_array = []
+        header_line = ""
+        with open("fort.2", "r") as example_file:
+            header_line = example_file.readline()
+            print(header_line)
+        constants_array = header_line.split(" ")
+        # Remove the first empty parts that come from the '3X' Fortran Formatting
+        del constants_array[0]
+        del constants_array[0]
+        del constants_array[0]
+        del constants_array[0]
+        print(constants_array)
+        # Convert to floats
+        for element in range(len(constants_array)):
+            constants_array[element] = float(constants_array[element])
+        print(constants_array)
+        '''
+        Format of first line in fort.2 file
+        PINDEX,CON2,RRR2,OMCEN,DENCEN,TOVERW,ROF3N,ZOF3N,
+&        A1NEWZ,JREQ,KZPOL
+        '''
+
         # Get the density array
-        for row in range(jmax + 2):
-            for column in range(jmax + 2):
-                denny[row][column] = surface_density_profile(1.4, row + 1, 100, 20, 0.14, column + 1, 0.5, 1.5, 2)
+        for column in range(jmax + 2):
+            for row in range(jmax + 2):
+                denny[row][column] = surface_density_profile(1.4, row + 1, 90, 60, 0.14, column + 1, 0.5,
+                                                             constants_array[0], jout, constants_array[6],
+                                                             constants_array[7])
 
         # Get angular momentum array
         for row in range(jmax + 1):
             for column in range(jmax + 1):
-                anggy[row][column] = 1
+                anggy[column][row] = angular_momentum(row + 1, constants_array[6], column+1, constants_array[7],
+                                                      denny[row][column], 1, 1, jout)
+        print("Length of Anggy: " + str(len(anggy)))
+
         with open("temp", 'w') as model_file:
+            model_file.write(header_line)
             fortran_writer = FortranRecordWriter('8(1PE10.3,2X)')
             # Write header line
             # Fortran saves out arrays column first, so first row in file would be the first entry in each row in array
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
-            # TODO Use Equations for Density and Angaulaer Momentum
             # Writing density array to fort.2
-            # Save the first 8 values of the column to a temp array then write it, repeat until end of denny
             temp_denny = []
             for row in range(jmax + 2):
                 for column in range(jmax + 2):
-                    temp_denny.append(denny[column][row])
+                    temp_denny.append(denny[row][column])
                     ''' if len(temp_denny) == 8:
-                         writer.writerow(temp_denny)
-                         temp_denny = []
-                     if row == jmax + 1 and column == jmax + 1:
-                         writer.writerow(temp_denny)
-                         temp_denny = []'''
+                        writer.writerow(temp_denny)
+                        temp_denny = []
+                    if row == jmax + 1 and column == jmax + 1:
+                        writer.writerow(temp_denny)
+                        temp_denny = []'''
             output_text = fortran_writer.write(temp_denny)
+            output_text += "\n"
             model_file.write(output_text)
             # Writing the angular momentum array to fort.2
             # Repeat what was done for the denny array
             temp_anggy = []
             for row in range(jmax + 1):
                 for column in range(jmax + 1):
-                    temp_anggy.append(anggy[column][row])
-                    if len(temp_denny) == 8:
-                        writer.writerow(temp_anggy)
-                        temp_anggy = []
-                        # TODO Input coordinates of points into RWI equations and output them with 8 density points per line
-                        # TODO Then for specific angular momentum, same thing
+                    temp_anggy.append(anggy[row][column])
+            print("Length of Temp Anggy: " + str(len(temp_anggy)))
+            output_text = fortran_writer.write(temp_anggy)
+            output_text += "\n"
+            model_file.write(output_text)
+            # TODO Input coordinates of points into RWI equations and output them with 8 density points per line
+            # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
 
 
-generate_fort_2(1.5, 2.0, 256, 256, 10, 10, -10, 50, 1, 30, 30, 30, 'RWI')
+generate_fort_2(1.5, 2.0, 256, 256, 64, 10, -10, 50, 1, 30, 30, 30, 'RWI')
