@@ -30,6 +30,26 @@ c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
 '''
 
+# Constants taken from papers, etc.
+h = 0.14
+polytropic_index = 1.5
+g = 1
+mass_star = 1
+r_size = 256
+z_size = 256
+jout = 64
+kout = 10
+xnorm = 30
+xcut = 30
+xwidth = 30
+iteration = 50
+lcd = -10
+
+# RWI constants
+delta_r = 30
+r_nought = 90
+amplitude = 1.4
+alpha = 0.5
 
 # TODO Add Length Scale
 def gaussian(x, mu, sig):
@@ -41,7 +61,7 @@ def gaussian(x, mu, sig):
     :param sig: delta_r, the width of the bump
     :return: The gaussian distribution, not scaled for the amplitude
     '''
-    distribution = np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+    distribution = np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.0)))
     scaled = (1.0 / (math.sqrt(2 * math.pi) * sig)) * distribution
     return scaled
 
@@ -110,11 +130,8 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
     :return: Value for density at the given point
     '''
     if radius > jmin and z_height <= big_h(h, radius):
-        density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) * (
-                                                                                                                     p_nought_coefficient(
-                                                                                                                         h,
-                                                                                                                         z_height * zof3n,
-                                                                                                                         radius * rof3n)) ** polytropic_index
+        density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) \
+                           * (p_nought_coefficient(h, z_height * zof3n, radius * rof3n)) ** polytropic_index
     else:
         density_at_point = 0.000
     return density_at_point
@@ -123,9 +140,9 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
 # Angular Momentum functions
 def pressure(density, constant, polytropic_index):
     """
-    Calculate pressure 
+    Calculate pressure
     :rtype : float
-    :param density: density at point 
+    :param density: density at point
     :param constant: coefficient
     :param polytropic_index: polytropic index of model
     :return: Pressure at that density
@@ -304,8 +321,8 @@ def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
     """
     Calculate angular velocity
     :rtype : float
-    :param radius: 
-    :param rof3n: 
+    :param radius:
+    :param rof3n:
     :param z: height, in terms of z * zof3n
     :param density: Density at point
     :param g: graviational constant
@@ -318,7 +335,7 @@ def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
     return velocity * omega
 
 
-def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
+def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, h):
     '''
     Calculates the angular momentum for the grid point (r, z) from the density from surface_density_profile function
     :param radius: Radius (in grid units)
@@ -332,7 +349,7 @@ def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
     :return: The angular momentum for that grid point
     '''
     return (radius * rof3n) * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
-        velocity_squared(g=g, mass_star=mass_star, h=0.14, radius=radius * rof3n))
+        velocity_squared(g=g, mass_star=mass_star, h=h, radius=radius * rof3n))
     # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
     #                                                                                                        rof3n,
     #                                                                                                       z,
@@ -340,12 +357,11 @@ def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, jmin):
     #                                                                                                     density)
 
 
-def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
+def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_density, iteration, mass_star, xcut,
                     xwidth, xnorm, type):
     """
     Generate fort.2 model file for CHYMERA Code
     :param polytropic_index: Polytropic index of star
-    :param model: The star/disk model, 100 for star/disk, -2.0 for disk with point mass star
     :param jmax: radial grid size
     :param kmax: vertical grid size
     :param jout: radial size of star+disk. negative for just the disk
@@ -390,7 +406,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         # Get the density array
         for column in range(jmax + 2):
             for row in range(jmax + 2):
-                denny[row][column] = surface_density_profile(1.4, row + 1, 90, 20, 0.14, column + 1, 0.5,
+                denny[row][column] = surface_density_profile(amplitude, row + 1, r_nought, delta_r, h, column + 1, alpha,
                                                              constants_array[0], jout, constants_array[6],
                                                              constants_array[7])
 
@@ -398,7 +414,7 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         for row in range(jmax + 1):
             for column in range(jmax + 1):
                 anggy[column][row] = angular_momentum(row + 1, constants_array[6], column + 1, constants_array[7],
-                                                      denny[row][column], 1, 1, jout)
+                                                      denny[row][column], g, mass_star, h=h)
         print("Length of Anggy: " + str(len(anggy)))
 
         with open("temp", 'w') as model_file:
@@ -437,4 +453,6 @@ def generate_fort_2(polytropic_index, model, jmax, kmax, jout, kout, log_central
         print('Using normal equations for disk')
 
 
-generate_fort_2(1.5, 2.0, 256, 256, 64, 10, -10, 50, 1, 30, 30, 30, 'RWI')
+generate_fort_2(polytropic_index=polytropic_index, jmax=r_size, kmax=z_size, jout=jout, kout=kout,
+                log_central_density=lcd, iteration=iteration, mass_star=mass_star, xcut=xcut, xnorm=xnorm,
+                xwidth=xwidth, type='RWI')
