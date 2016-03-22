@@ -35,6 +35,7 @@ c---------------------------------------------
 def gaussian(x, mu, sig):
     '''
     Return the gaussian distribution
+    :rtype : float
     :param x: Generally, r, the radius
     :param mu: Generall r_nought, the center of the bump
     :param sig: delta_r, the width of the bump
@@ -48,6 +49,7 @@ def gaussian(x, mu, sig):
 def p_nought(amplitude, radius, r_nought, delta_r, alpha):
     '''
     Calculates the P_o, which gives most of the bump for the model
+    :rtype : float
     :param amplitude: Amplitude of the bump
     :param radius: Radius of the point, in radius * rof3n
     :param r_nought: Center point of bump, in r_nought * rof3n
@@ -65,6 +67,7 @@ def p_nought(amplitude, radius, r_nought, delta_r, alpha):
 def big_h(h, r):
     '''
     Calculates the H(r) value for the model
+    :rtype : float
     :param h: little h value
     :param r: radius to calculate for
     :return: H(r) value for the model
@@ -75,7 +78,8 @@ def big_h(h, r):
 
 def p_nought_coefficient(h, z, r):
     '''
-    Calculates the coefficent for P_o in 
+    Calculates the coefficent for P_o in
+    :rtype : float
     :param h: little h value
     :param z: height of point
     :param r: radius from center of point
@@ -91,6 +95,7 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
                             zof3n):
     '''
     Calculates the surface density for the grid point in terms of the desired Gaussian density bump
+    :rtype : float
     :param amplitude: Amplitude of teh bump
     :param radius: radius in grid units
     :param r_nought: center of density bump
