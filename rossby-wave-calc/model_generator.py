@@ -432,7 +432,7 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             temp_denny = []
             for column in range(jmax2):
                 for row in range(jmax2):
-                    temp_denny.append(denny[column][row])
+                    temp_denny.append(denny[row][column])
                     ''' if len(temp_denny) == 8:
                         writer.writerow(temp_denny)
                         temp_denny = []
@@ -447,7 +447,7 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             temp_anggy = []
             for column in range(jmax1):
                 for row in range(jmax1):
-                    temp_anggy.append(anggy[column][row])
+                    temp_anggy.append(anggy[row][column])
             print("Length of Temp Anggy: " + str(len(temp_anggy)))
             output_text = fortran_writer.write(temp_anggy)
             output_text += "\n"
