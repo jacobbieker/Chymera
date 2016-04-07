@@ -132,9 +132,10 @@ def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, a
     :param zof3n: length scale for z grid points
     :return: Value for density at the given point
     '''
+    z = z_height / big_h(h, radius * rof3n)
     if radius > jmin and z_height <= big_h(h, radius):
         density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) \
-                           * (p_nought_coefficient(h, z_height * zof3n, radius * rof3n)) ** polytropic_index
+                           * (p_nought_coefficient(h, z * zof3n, radius * rof3n)) ** polytropic_index
     else:
         density_at_point = 0.000
     return density_at_point
