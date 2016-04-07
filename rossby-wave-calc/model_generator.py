@@ -28,7 +28,16 @@ c just read first numbers, not read ANGGY or DENNY, two equations above do that
 c thene it should work
 c L = 1 because it is rotating the grid made by hscf.f
 c---------------------------------------------
+
+R∈[0.4,1.6]r0,Z∈[0,Zs] =[0,0.9], andα= 0.5 for the power-law part of the surfacedensity profile. The bump radius,
+amplitude and widthare set to r0= 1,A= 1.4 and ∆r= 0.05r0,
 '''
+
+# RWI constants
+r_nought = 100
+delta_r = 0.05*r_nought
+amplitude = 1.4
+alpha = 0.5
 
 # Constants taken from papers, etc.
 h = 0.14
@@ -37,19 +46,13 @@ g = 1
 mass_star = 1
 r_size = 256
 z_size = 256
-jout = 64
+jout = 0.4*r_nought
 kout = 10
 xnorm = 30
 xcut = 30
 xwidth = 30
 iteration = 50
 lcd = -10
-
-# RWI constants
-delta_r = 30
-r_nought = 90
-amplitude = 1.4
-alpha = 0.5
 
 # TODO Add Length Scale
 def gaussian(x, mu, sig):
@@ -375,11 +378,12 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
     :param type: Currently either 'RWI' for Rossby Wave Instability, anything else for general disk model
     :return: A model file for input into the CHYMERA computational fluid dynamics code to run
     """
-
+    jmax2 = jmax + 2
+    jmax1 = jmax + 1
     if type == 'RWI':
         print('Using Rossby Wave equations for disk')
-        denny = [[0 for x in range(jmax + 2)] for x in range(jmax + 2)]
-        anggy = [[0 for x in range(jmax + 1)] for x in range(jmax + 1)]
+        denny = [[0 for x in range(jmax2)] for x in range(jmax2)]
+        anggy = [[0 for x in range(jmax1)] for x in range(jmax1)]
 
         constants_array = []
         header_line = ""
@@ -404,16 +408,16 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
         '''
 
         # Get the density array
-        for column in range(jmax + 2):
-            for row in range(jmax + 2):
+        for column in range(jmax2):
+            for row in range(jmax2):
                 denny[row][column] = surface_density_profile(amplitude, row + 1, r_nought, delta_r, h, column + 1, alpha,
                                                              constants_array[0], jout, constants_array[6],
                                                              constants_array[7])
 
         # Get angular momentum array
-        for row in range(jmax + 1):
-            for column in range(jmax + 1):
-                anggy[column][row] = angular_momentum(row + 1, constants_array[6], column + 1, constants_array[7],
+        for column in range(jmax1):
+            for row in range(jmax1):
+                anggy[row][column] = angular_momentum(row + 1, constants_array[6], column + 1, constants_array[7],
                                                       denny[row][column], g, mass_star, h=h)
         print("Length of Anggy: " + str(len(anggy)))
 
@@ -425,13 +429,13 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             # Each line is composed of 8 floating point with 22 spaces with 15 after the decimal place, then two spaces
             # Writing density array to fort.2
             temp_denny = []
-            for row in range(jmax + 2):
-                for column in range(jmax + 2):
-                    temp_denny.append(denny[row][column])
+            for column in range(jmax2):
+                for row in range(jmax2):
+                    temp_denny.append(denny[column][row])
                     ''' if len(temp_denny) == 8:
                         writer.writerow(temp_denny)
                         temp_denny = []
-                    if row == jmax + 1 and column == jmax + 1:
+                    if row == jmax1 and column == jmax1:
                         writer.writerow(temp_denny)
                         temp_denny = []'''
             output_text = fortran_writer.write(temp_denny)
@@ -440,9 +444,9 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             # Writing the angular momentum array to fort.2
             # Repeat what was done for the denny array
             temp_anggy = []
-            for row in range(jmax + 1):
-                for column in range(jmax + 1):
-                    temp_anggy.append(anggy[row][column])
+            for column in range(jmax1):
+                for row in range(jmax1):
+                    temp_anggy.append(anggy[column][row])
             print("Length of Temp Anggy: " + str(len(temp_anggy)))
             output_text = fortran_writer.write(temp_anggy)
             output_text += "\n"
