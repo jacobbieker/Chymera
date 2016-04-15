@@ -80,7 +80,7 @@ def p_nought(amplitude, radius, r_nought, delta_r, alpha):
     :param alpha: coefficient
     :return: P_o
     '''
-    gaussian_bump = amplitude * gaussian(radius, r_nought, delta_r)
+    gaussian_bump = gaussian(radius, r_nought, delta_r)
     # print("Gaussian Bump: " + str(gaussian_bump))
     b_r = amplitude * gaussian_bump
     # print("B(r): " + str(b_r))
