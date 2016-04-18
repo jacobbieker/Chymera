@@ -36,7 +36,7 @@ amplitude and widthare set to r0= 1,A= 1.4 and ∆r= 0.05r0,
 
 # RWI constants
 r_nought = 100
-delta_r = 0.05*r_nought
+delta_r = 0.05 * r_nought
 amplitude = 1.4
 alpha = 0.5
 
@@ -47,7 +47,7 @@ g = 1
 mass_star = 1
 r_size = 256
 z_size = 256
-jout = 0.4*r_nought
+jout = 0.4 * r_nought
 kout = 10
 xnorm = 30
 xcut = 30
@@ -55,128 +55,51 @@ xwidth = 30
 iteration = 50
 lcd = -10
 
-###########
-# Finding Sigma_nought for use in the other equations
-###########
+# Abritraty numbers
+k = 1
+sigma_nought = 1
 
 
-def integrand(r, r_nought, amplitude, alpha, delta_r):
-    return (r/r_nought)**(-alpha) * (1+(amplitude-1)*np.exp((r-r_nought)**2/(2*delta_r**2)))
-
-#Value of density_profile at r_nought
+# Value of density_profile at r_nought
 def density_profile_nought(amplitude):
-    return quad(integrand, -np.inf, np.inf, args=(r, r_nought, amplitude, alpha, delta_r))
-
-#Density profile to be used in later equations
-def density_profile(r, r_nought, amplitude, delta_r, density_profile_nought, alpha):
-    return (density_profile_nought) * (r/r_nought)**(-alpha) * (1+(alpha-1)*np.exp((r-r_nought)**2/(2*delta_r**2)))
-
-#Value of big_h at r_nought
-def big_h_nought(h,r):
-    return h * r
-
-#General equation for big_h 
-def big_h(amplitude, polytropic_index, r, r_nought):
-    return big_h_nought(h, r) * (density_profile()/(density_profile_nought*amplitude))**(1/(2*polytropic_index+1)) * \
-           (r/r_nought)**(3*polytropic_index/(2*polytropic_index+1))
-
-#Density at r_nought, don't remember what k is but I think it's an arbitrary constant that we used somewhere else
-def rho_nought(g, mass_star, k, polyatropic_index)
-    return (g*mass_star*big_h()**2)/(2*k*(1+polyatropic_index)*r^3)
-
-#Density equation
-def rho(z):
-    return rho_nought*(1-(z**2/big_h()**2))**polytropic_index
-
-#With these equations instead of the old equations I think the angular momentum should come out correctly because it will use the new
-#value for big_h, but I wanted to just leave them commented out until we actually talked about it.
+    return amplitude
 
 
-# TODO Add Length Scale
-def gaussian(x, mu, sig):
-    '''
-    Return the gaussian distribution
-    :rtype : float
-    :param x: Generally, r, the radius
-    :param mu: Generall r_nought, the center of the bump
-    :param sig: delta_r, the width of the bump
-    :return: The gaussian distribution, not scaled for the amplitude
-    '''
-    distribution = np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.0)))
-    scaled = (1.0 / (math.sqrt(2 * math.pi) * sig)) * distribution
-    return scaled
+# Density profile to be used in later equations
+def density_profile(r, r_nought, amplitude, delta_r, alpha):
+    return (density_profile_nought(amplitude)) * (r / r_nought) ** (-alpha) \
+           * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * delta_r ** 2)))
 
 
-def p_nought(amplitude, radius, r_nought, delta_r, alpha):
-    '''
-    Calculates the P_o, which gives most of the bump for the model
-    :rtype : float
-    :param amplitude: Amplitude of the bump
-    :param radius: Radius of the point, in radius * rof3n
-    :param r_nought: Center point of bump, in r_nought * rof3n
-    :param delta_r: Width of bump, in delta_r * rof3n
-    :param alpha: coefficient
-    :return: P_o
-    '''
-    gaussian_bump = gaussian(radius, r_nought, delta_r)
-    # print("Gaussian Bump: " + str(gaussian_bump))
-    b_r = amplitude * gaussian_bump
-    # print("B(r): " + str(b_r))
-    return math.pow(radius, -alpha) * b_r
-
-
-def big_h(h, r):
-    '''
-    Calculates the H(r) value for the model
-    :rtype : float
-    :param h: little h value
-    :param r: radius to calculate for
-    :return: H(r) value for the model
-    '''
-    # print("H: " + str(h * r))
+# Value of big_h at r_nought
+def big_h_nought(h, r):
     return h * r
 
 
-def p_nought_coefficient(h, z, r):
-    '''
-    Calculates the coefficent for P_o in
-    :rtype : float
-    :param h: little h value
-    :param z: height of point
-    :param r: radius from center of point
-    :return: Coefficient of P_o
-    '''
-    # print("little h: " + str(h))
-    # print("Z: " + str(z))
-    # print("P Nought: " + str((1.0 - (z / big_h(h, r)) ** 2)))
-    return 1.0 - (z / big_h(h, r)) ** 2
+# General equation for big_h 
+def big_h(r, r_nought, amplitude, polytropic_index):
+    return big_h_nought(h, r) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
+        density_profile_nought(amplitude) * amplitude)) ** (1 / (2 * polytropic_index + 1)) * \
+           (r / r_nought) ** (3 * polytropic_index / (2 * polytropic_index + 1))
 
 
-def surface_density_profile(amplitude, radius, r_nought, delta_r, h, z_height, alpha, polytropic_index, jmin, rof3n,
-                            zof3n):
-    '''
-    Calculates the surface density for the grid point in terms of the desired Gaussian density bump
-    :rtype : float
-    :param amplitude: Amplitude of teh bump
-    :param radius: radius in grid units
-    :param r_nought: center of density bump
-    :param delta_r: width of density bump
-    :param h: disk thickness
-    :param z_height: height of grid point
-    :param alpha: coefficient given in papers
-    :param polytropic_index: polytropic index of model
-    :param jmin: min distance in which to calculate the angular momentum
-    :param rof3n: length scale for r grid points
-    :param zof3n: length scale for z grid points
-    :return: Value for density at the given point
-    '''
-    z = z_height / big_h(h, radius * rof3n)
-    if radius > jmin and z_height <= big_h(h, radius):
-        density_at_point = p_nought(amplitude, radius * rof3n, r_nought * rof3n, delta_r * rof3n, alpha=alpha) \
-                           * (p_nought_coefficient(h, z * zof3n, radius * rof3n)) ** polytropic_index
+# Density at r_nought, don't remember what k is but I think it's an arbitrary constant that we used somewhere else
+def rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index):
+    return (g * mass_star * big_h(r, r_nought, amplitude, polytropic_index) ** 2) / (
+        2 * k * (1 + polytropic_index) * r ** 3)
+
+
+# Density equation
+def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmin, rof3n,
+        zof3n):
+    z = z * zof3n
+    r = radius * rof3n
+    if radius > jmin and z / zof3n < big_h(r, r_nought, amplitude, polytropic_index):
+        density_point =  rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index) \
+                         * (1 - (z ** 2 / big_h(r, r_nought, amplitude, polytropic_index) ** 2)) ** polytropic_index
     else:
-        density_at_point = 0.000
-    return density_at_point
+        density_point = 0.000
+    return density_point
 
 
 # Angular Momentum functions
@@ -371,7 +294,7 @@ def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
     :param mass_star: mass of star
     :return: Angular velocty for a given point
     """
-    #TODO Figure out what this does
+    # TODO Figure out what this does
     velocity = radius * rof3n
     omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
     return velocity * omega
@@ -449,9 +372,10 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
         # Get the density array
         for column in range(jmax2):
             for row in range(jmax2):
-                denny[row][column] = surface_density_profile(amplitude, row + 1, r_nought, delta_r, h, column + 1, alpha,
-                                                             constants_array[0], jout, constants_array[6],
-                                                             constants_array[7])
+                denny[row][column] = rho(amplitude, row + 1, r_nought, delta_r, h, column + 1,
+                                         alpha,
+                                         constants_array[0], jout, constants_array[6],
+                                         constants_array[7])
 
         # Get angular momentum array
         for column in range(jmax1):
@@ -494,6 +418,7 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
+
 
 generate_fort_2(polytropic_index=polytropic_index, jmax=r_size, kmax=z_size, jout=jout, kout=kout,
                 log_central_density=lcd, iteration=iteration, mass_star=mass_star, xcut=xcut, xnorm=xnorm,
