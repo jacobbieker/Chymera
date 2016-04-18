@@ -2,6 +2,7 @@ __author__ = 'jacob'
 import csv
 import os
 import numpy as np
+from scipy.integrate import quad
 import math
 from fortranformat import FortranRecordWriter, FortranRecordReader
 
@@ -54,36 +55,42 @@ xwidth = 30
 iteration = 50
 lcd = -10
 
-'''
-Potential new equations:
+###########
+# Finding Sigma_nought for use in the other equations
+###########
+
+
+def integrand(r, r_nought, amplitude, alpha, delta_r):
+    return (r/r_nought)**(-alpha) * (1+(amplitude-1)*np.exp((r-r_nought)**2/(2*delta_r**2)))
 
 #Value of density_profile at r_nought
-def density_proflie_nought(amplitude):
-  return 1 + (amplitude - 1)
+def density_profile_nought(amplitude):
+    return quad(integrand, -np.inf, np.inf, args=(r, r_nought, amplitude, alpha, delta_r))
 
 #Density profile to be used in later equations
 def density_profile(r, r_nought, amplitude, delta_r, density_profile_nought, alpha):
-  return (density_profile_nought) * (r/r_nought)**(-alpha) * (1+(alpha-1)*exp((r-r_nought)**2/(2*delta_r**2)))
+    return (density_profile_nought) * (r/r_nought)**(-alpha) * (1+(alpha-1)*np.exp((r-r_nought)**2/(2*delta_r**2)))
 
-#Value of big_h at r_nought  
+#Value of big_h at r_nought
 def big_h_nought(h,r):
-  return h * r
+    return h * r
 
 #General equation for big_h 
-def big_h(big_H_nought, density_profile, amplitude, polytropic_index, r, r_nought):
-  return big_h_nought * (density_profile/(density_profile_nought*amplitude))**(1/(2n+1)) * (r/r_nought)**(3n/(2n+1))
+def big_h(amplitude, polytropic_index, r, r_nought):
+    return big_h_nought(h, r) * (density_profile()/(density_profile_nought*amplitude))**(1/(2*polytropic_index+1)) * \
+           (r/r_nought)**(3*polytropic_index/(2*polytropic_index+1))
 
 #Density at r_nought, don't remember what k is but I think it's an arbitrary constant that we used somewhere else
-def rho_nought(g, mass_star, big_h, k, polyatropic_index)
-  return (g*mass_star*big_h**2)/(2k*(1+n)*r^3)
+def rho_nought(g, mass_star, k, polyatropic_index)
+    return (g*mass_star*big_h()**2)/(2*k*(1+polyatropic_index)*r^3)
 
 #Density equation
-def rho(rho_nought, z, big_h):
-  return rho_nought*(1-(z**2/big_h**2))
-  
+def rho(z):
+    return rho_nought*(1-(z**2/big_h()**2))**polytropic_index
+
 #With these equations instead of the old equations I think the angular momentum should come out correctly because it will use the new
 #value for big_h, but I wanted to just leave them commented out until we actually talked about it.
-'''
+
 
 # TODO Add Length Scale
 def gaussian(x, mu, sig):
@@ -487,7 +494,6 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             # TODO Then for specific angular momentum, same thing
     else:
         print('Using normal equations for disk')
-
 
 generate_fort_2(polytropic_index=polytropic_index, jmax=r_size, kmax=z_size, jout=jout, kout=kout,
                 log_central_density=lcd, iteration=iteration, mass_star=mass_star, xcut=xcut, xnorm=xnorm,
