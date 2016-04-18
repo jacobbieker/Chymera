@@ -59,11 +59,11 @@ Potential new equations:
 
 #Value of density_profile at r_nought
 def density_proflie_nought(amplitude):
-  return 1 + (amplitude - 1)
+  return #Integrate from -inf to inf rho(r_nought,z) dz
 
 #Density profile to be used in later equations
 def density_profile(r, r_nought, amplitude, delta_r, density_profile_nought, alpha):
-  return (density_profile_nought) * (r/r_nought)**(-alpha) * (1+(alpha-1)*exp((r-r_nought)**2/(2*delta_r**2)))
+  return (density_profile_nought) * (r/r_nought)**(-alpha) * (1+(amplitude-1)*exp((r-r_nought)**2/(2*delta_r**2)))
 
 #Value of big_h at r_nought  
 def big_h_nought(h,r):
