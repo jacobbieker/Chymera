@@ -59,15 +59,15 @@ lcd = -10
 k = 1
 sigma_nought = 1
 
-
+'''
 # Value of density_profile at r_nought
 def density_profile_nought(amplitude):
     return amplitude
-
+'''
 
 # Density profile to be used in later equations
 def density_profile(r, r_nought, amplitude, delta_r, alpha):
-    return (density_profile_nought(amplitude)) * (r / r_nought) ** (-alpha) \
+    return (sigma_nought) * (r / r_nought) ** (-alpha) \
            * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * delta_r ** 2)))
 
 
@@ -79,7 +79,7 @@ def big_h_nought(h, r):
 # General equation for big_h 
 def big_h(r, r_nought, amplitude, polytropic_index):
     return big_h_nought(h, r) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
-        density_profile_nought(amplitude) * amplitude)) ** (1 / (2 * polytropic_index + 1)) * \
+        sigma_nought * amplitude)) ** (1 / (2 * polytropic_index + 1)) * \
            (r / r_nought) ** (3 * polytropic_index / (2 * polytropic_index + 1))
 
 
