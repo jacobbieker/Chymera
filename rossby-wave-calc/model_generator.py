@@ -94,6 +94,7 @@ def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmi
         zof3n):
     z = z * zof3n
     r = radius * rof3n
+    r_nought = r_nought * rof3n
     if radius > jmin and z / zof3n < big_h(r, r_nought, amplitude, polytropic_index):
         density_point =  rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index) \
                          * (1 - (z ** 2 / big_h(r, r_nought, amplitude, polytropic_index) ** 2)) ** polytropic_index
