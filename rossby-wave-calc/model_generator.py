@@ -288,7 +288,7 @@ def velocity_squared(g, mass_star, h, radius):
     return star_influence * second_half
 
 
-def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
+def angular_velocity_1(radius, z, density, g, mass_star):
     """
     Calculate angular velocity
     :rtype : float
@@ -302,11 +302,11 @@ def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
     """
     # TODO Figure out what this does
     velocity = radius
-    omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
+    omega = math.sqrt((g * mass_star) / radius ** 2)
     return velocity * omega
 
 
-def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, h):
+def angular_momentum(radius, z, density, g, mass_star, h):
     '''
     Calculates the angular momentum for the grid point (r, z) from the density from surface_density_profile function
     :param radius: Radius (in grid units)
