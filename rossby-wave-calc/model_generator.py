@@ -65,17 +65,19 @@ lcd = -10
 k = 2.77e28
 sigma_nought = 1
 
-
 '''
 # Value of density_profile at r_nought
 def density_profile_nought(amplitude):
     return amplitude
 '''
 
+
 # Density profile to be used in later equations
 def density_profile(r, r_nought, amplitude, delta_r, alpha):
-    return (sigma_nought) * (r / r_nought) ** (-alpha) \
-           * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * delta_r ** 2)))
+    value = (sigma_nought) * (r / r_nought) ** (-alpha) \
+            * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * delta_r ** 2)))
+    #print("Density Profile Value: " + str(value))
+    return value
 
 
 # Value of big_h at r_nought
@@ -85,23 +87,30 @@ def big_h_nought(h, r):
 
 # General equation for big_h 
 def big_h(r, r_nought, amplitude, polytropic_index):
-    return big_h_nought(h, r_nought) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
+    big_h_val = big_h_nought(h, r_nought) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
         sigma_nought * amplitude)) ** (1 / (2 * polytropic_index + 1)) * \
-           (r / r_nought) ** (3 * polytropic_index / (2 * polytropic_index + 1))
+                (r / r_nought) ** (3 * polytropic_index / (2 * polytropic_index + 1))
+    #print("Big H: " + str(big_h_val))
+    return big_h_val
 
 
 # Density at r_nought, don't remember what k is but I think it's an arbitrary constant that we used somewhere else
 def rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index):
-    return (g * mass_star * big_h(r, r_nought, amplitude, polytropic_index) ** 2) / (
+    rho_nought_val = (g * mass_star * big_h(r, r_nought, amplitude, polytropic_index) ** 2) / (
         2 * k * (1 + polytropic_index) * r ** 3)
+    print("Rho_nought: " + str(rho_nought_val))
+    return rho_nought_val
 
 
 # Density equation
-def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmin,):
-    if radius > jmin and z < big_h(radius, r_nought, amplitude, polytropic_index):
+def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmin, ):
+    if radius / rof3n > jmin and z < big_h(radius, r_nought, amplitude, polytropic_index):
         density_point = rho_nought(radius, r_nought, amplitude, g, mass_star, k, polytropic_index) \
                         * (1 - (z ** 2 / big_h(radius, r_nought, amplitude, polytropic_index) ** 2)) \
                           ** polytropic_index
+        if int(radius / rof3n) == int(r_nought / rof3n):
+            print("###############################################R_NOUGHT      VALUES#####################################################################################")
+        print("At radius: " + str(radius) + " Density Point: " + str(density_point))
 
     else:
         density_point = 0.000
@@ -383,7 +392,7 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
                 r_nought_scaled = r_nought * rof3n
                 denny[row][column] = rho(amplitude, r, r_nought_scaled, delta_r, h, z,
                                          alpha,
-                                         constants_array[0], jout,)
+                                         constants_array[0], jout, )
 
         # Get angular momentum array
         for column in range(jmax1):
