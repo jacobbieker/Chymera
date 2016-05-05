@@ -34,6 +34,12 @@ R∈[0.4,1.6]r0,Z∈[0,Zs] =[0,0.9], andα= 0.5 for the power-law part of the su
 amplitude and widthare set to r0= 1,A= 1.4 and ∆r= 0.05r0,
 '''
 
+# Scaling factors
+
+rof3n = 1.451282e-02
+zof3n = 1.451282e-02
+
+
 # RWI constants
 r_nought = 128
 delta_r = 0.05 * r_nought
@@ -59,8 +65,6 @@ lcd = -10
 k = 2.77e28
 sigma_nought = 1
 
-rof3n = 1.451282e-02
-zof3n = 1.451282e-02
 
 '''
 # Value of density_profile at r_nought
@@ -71,7 +75,7 @@ def density_profile_nought(amplitude):
 # Density profile to be used in later equations
 def density_profile(r, r_nought, amplitude, delta_r, alpha):
     return (sigma_nought) * (r / r_nought) ** (-alpha) \
-           * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * (delta_r * rof3n) ** 2)))
+           * (1 + (amplitude - 1) * np.exp((r - r_nought) ** 2 / (2 * delta_r ** 2)))
 
 
 # Value of big_h at r_nought
@@ -93,14 +97,11 @@ def rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index):
 
 
 # Density equation
-def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmin, rof3n,
-        zof3n):
-    z = z * zof3n
-    r = radius * rof3n
-    r_nought = r_nought * rof3n
-    if radius > jmin and z < big_h(r, r_nought, amplitude, polytropic_index):
-        density_point = rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index) \
-                        * (1 - (z ** 2 / big_h(r, r_nought, amplitude, polytropic_index) ** 2)) ** polytropic_index
+def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmin,):
+    if radius > jmin and z < big_h(radius, r_nought, amplitude, polytropic_index):
+        density_point = rho_nought(radius, r_nought, amplitude, g, mass_star, k, polytropic_index) \
+                        * (1 - (z ** 2 / big_h(radius, r_nought, amplitude, polytropic_index) ** 2)) \
+                          ** polytropic_index
 
     else:
         density_point = 0.000
@@ -300,7 +301,7 @@ def angular_velocity_1(radius, rof3n, z, density, g, mass_star):
     :return: Angular velocty for a given point
     """
     # TODO Figure out what this does
-    velocity = radius * rof3n
+    velocity = radius
     omega = math.sqrt((g * mass_star) / (radius * rof3n) ** 2)
     return velocity * omega
 
@@ -318,8 +319,8 @@ def angular_momentum(radius, rof3n, z, zof3n, density, g, mass_star, h):
     :param jmin: minimum radius in which to compute the angular momentum
     :return: The angular momentum for that grid point
     '''
-    return (radius * rof3n) * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
-        velocity_squared(g=g, mass_star=mass_star, h=h, radius=radius * rof3n))
+    return radius * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
+        velocity_squared(g=g, mass_star=mass_star, h=h, radius=radius))
     # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
     #                                                                                                        rof3n,
     #                                                                                                       z,
@@ -377,15 +378,19 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
         # Get the density array
         for column in range(jmax2):
             for row in range(jmax2):
-                denny[row][column] = rho(amplitude, row + 1, r_nought, delta_r, h, column + 1,
+                z = (column + 1) * zof3n
+                r = (row + 1) * rof3n
+                r_nought_scaled = r_nought * rof3n
+                denny[row][column] = rho(amplitude, r, r_nought_scaled, delta_r, h, z,
                                          alpha,
-                                         constants_array[0], jout, rof3n,
-                                         zof3n)
+                                         constants_array[0], jout,)
 
         # Get angular momentum array
         for column in range(jmax1):
             for row in range(jmax1):
-                anggy[row][column] = angular_momentum(row + 1, zof3n, column + 1, rof3n,
+                z = (column + 1) * zof3n
+                r = (row + 1) * rof3n
+                anggy[row][column] = angular_momentum(r, zof3n, z, rof3n,
                                                       denny[row][column], g, mass_star, h=h)
         print("Length of Anggy: " + str(len(anggy)))
 
