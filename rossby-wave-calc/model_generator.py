@@ -390,7 +390,7 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
             for row in range(jmax1):
                 z = (column + 1) * zof3n
                 r = (row + 1) * rof3n
-                anggy[row][column] = angular_momentum(r, zof3n, z, rof3n,
+                anggy[row][column] = angular_momentum(r, z,
                                                       denny[row][column], g, mass_star, h=h)
         print("Length of Anggy: " + str(len(anggy)))
 
