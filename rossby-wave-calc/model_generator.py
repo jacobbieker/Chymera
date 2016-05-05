@@ -78,7 +78,7 @@ def big_h_nought(h, r):
 
 # General equation for big_h 
 def big_h(r, r_nought, amplitude, polytropic_index):
-    return big_h_nought(h, r) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
+    return big_h_nought(h, r_nought) * (density_profile(r, r_nought, amplitude, delta_r, alpha) / (
         sigma_nought * amplitude)) ** (1 / (2 * polytropic_index + 1)) * \
            (r / r_nought) ** (3 * polytropic_index / (2 * polytropic_index + 1))
 
@@ -95,9 +95,10 @@ def rho(amplitude, radius, r_nought, delta_r, h, z, alpha, polytropic_index, jmi
     z = z * zof3n
     r = radius * rof3n
     r_nought = r_nought * rof3n
-    if radius > jmin and z / zof3n < big_h(r, r_nought, amplitude, polytropic_index):
-        density_point =  rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index) \
-                         * (1 - (z ** 2 / big_h(r, r_nought, amplitude, polytropic_index) ** 2)) ** polytropic_index
+    if radius > jmin and z < big_h(r, r_nought, amplitude, polytropic_index):
+        density_point = rho_nought(r, r_nought, amplitude, g, mass_star, k, polytropic_index) \
+                        * (1 - (z ** 2 / big_h(r, r_nought, amplitude, polytropic_index) ** 2)) ** polytropic_index
+
     else:
         density_point = 0.000
     return density_point
