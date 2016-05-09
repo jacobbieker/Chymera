@@ -280,7 +280,7 @@ def unit_mass(rof3n, zof3n, density):
     return mass
 
 
-def velocity_squared(g, mass_star, h, radius):
+def velocity_squared(g, mass_star, big_h, h, radius, r_nought, delta_r, amplitude, polytropic_index, alpha, sigma_nought):
     """
     Calculate v^2 for a given radius
     :rtype : float
@@ -291,10 +291,17 @@ def velocity_squared(g, mass_star, h, radius):
     :return: v^2 for a point
     """
     ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
-    star_influence = (g * mass_star) / (radius)
-    second_half = 1 - (3 * (h * radius) ** 2) / (2 * (radius) ** 2) + (h * radius) / (
-        radius) * h
-    return star_influence * second_half
+  star_influence = g * mass_star / radius
+    
+	h_deriv = h*r_nought*(((-alpha*(radius/r_nought)**(-alpha-1)*((amplitude-1)np.exp(-(radius-r_nought)**2/delta_r**2)-1))/\
+	r_nought-(2*(amplitude-1)*(radius-r_nought)*np.exp(-(radius-r_nought)**2/delta_r**2)*(radius/r_nought)**(-alpha))/delta_r**2)*\
+	(radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))+((density_profile(r, r_nought, amplitude, delta_r, alpha)/\
+	(amplitude*simga_nought))**(1/(2*polytropic_index+1)))*(3*polytropic_index*\
+	(radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))/(2*polytropic_index*radius+radius)))
+    
+  second_half = 1 - (3 * big_h**2)/(2*r**2) + (big_h/radius)*h_deriv
+  
+  return star_influence * second_half
 
 
 def angular_velocity_1(radius, z, density, g, mass_star):
@@ -329,7 +336,7 @@ def angular_momentum(radius, z, density, g, mass_star, h):
     :return: The angular momentum for that grid point
     '''
     return radius * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
-        velocity_squared(g=g, mass_star=mass_star, h=h, radius=radius))
+        velocity_squared(g=g, mass_star=mass_star, big_h=big_h(r, r_nought, amplitude, polytropic_index), h=h, radius=radius, r_nought=r_nought, delta_r=delta_r, amplitude=amplitude, polytropic_index=polytropic_index, alpha=alpha, sigma_nought=sigma_nought))
     # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
     #                                                                                                        rof3n,
     #                                                                                                       z,
