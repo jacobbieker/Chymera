@@ -292,14 +292,36 @@ def velocity_squared(g, mass_star, big_h, h, radius, r_nought, delta_r, amplitud
     """
     ''' v^2 = (GM/r)*(1 - 3H^2/2r^2 + H/r * dH/dr)'''
     star_influence = g * mass_star / radius
-    h_deriv = h*r_nought*(((-alpha*(radius/r_nought)**(-alpha-1)*((amplitude-1)*(math.exp(-(radius-r_nought)**2/delta_r**2))-1))/ \
-                           r_nought-(2*(amplitude-1)*(radius-r_nought)*np.exp(-(radius-r_nought)**2/delta_r**2)*(radius/r_nought)**(-alpha))/delta_r**2) \
-                          * (radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))+((density_profile(radius, r_nought, amplitude, delta_r, alpha)/ \
-                                                                                             (amplitude*sigma_nought))**(1/(2*polytropic_index+1)))*(3*polytropic_index* \
-                                                                                                                                                     (radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))/(2*polytropic_index*radius+radius)))
-    print(h_deriv)
-    second_half = 1 - (3 * big_h**2)/(2*radius**2) + (big_h/radius)*h_deriv
+    r_over_nought = radius / r_nought
+    e_value = np.exp((-(radius - r_nought)**2) / (2*delta_r**2))
+    h_deriv_one = 1/(2*polytropic_index + 1)
+    h_deriv_two = h*r_nought*(r_over_nought)**((3*polytropic_index)/(2*polytropic_index + 1))
+    h_derv_three = -((alpha * (r_over_nought)**(-alpha - 1)))
+    h_deriv_four = (amplitude - 1)*e_value + 1
+    h_deriv_five = 1/(amplitude * r_nought)
+    h_deriv_six = -((amplitude - 1)*(radius - r_nought) * e_value)
+    h_deriv_seven = ((r_over_nought)**(-alpha))/(amplitude*delta_r**2)
+    h_deriv_eight = h_derv_three*h_deriv_four*h_deriv_five
+    h_deriv_nine = h_deriv_eight + (h_deriv_six*h_deriv_seven)
+    h_deriv_ten = ((r_over_nought**(-alpha))*((amplitude - 1)*e_value + 1)) / amplitude
+    h_deriv_eleven = h_deriv_ten**(1/(2*polytropic_index + 1) - 1)
+    # First 5 terms multiplied together
+    h_deriv_twelve = h_deriv_eleven * h_deriv_nine*h_deriv_two*h_deriv_one
 
+    h_deriv_thirteen = 3*h*polytropic_index*(r_over_nought)**((3*polytropic_index)/(2*polytropic_index + 1) - 1)
+    h_deriv_fourteen = (((r_over_nought**(-alpha)) * ((amplitude - 1)*e_value + 1)) / amplitude)**(1/(2*polytropic_index + 1))
+    h_derive_fifteen = 1/(2*polytropic_index + 1)
+    h_derive_sixteen = h_deriv_thirteen * h_deriv_fourteen * h_derive_fifteen
+
+    h_deriv = h_deriv_twelve + h_derive_sixteen
+    '''
+    h_deriv = h*r_nought*(((-alpha*(radius/r_nought)**(-alpha-1)*((amplitude-1)*(math.exp(-(radius-r_nought)**2/delta_r**2))-1))/ \
+        r_nought-(2*(amplitude-1)*(radius-r_nought)*np.exp(-(radius-r_nought)**2/delta_r**2)*(radius/r_nought)**(-alpha))/delta_r**2) \
+        * (radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))+((density_profile(radius, r_nought, amplitude, delta_r, alpha)/ \
+        (amplitude*sigma_nought))**(1/(2*polytropic_index+1)))*(3*polytropic_index* \
+        (radius/r_nought)**(3*polytropic_index/(2*polytropic_index+1))/(2*polytropic_index*radius+radius)))
+        '''
+    second_half = 1 - (3 * big_h**2)/(2*radius**2) + (big_h/radius)*h_deriv
     return star_influence * second_half
 
 
@@ -334,8 +356,14 @@ def angular_momentum(radius, z, density, g, mass_star, h):
     :param jmin: minimum radius in which to compute the angular momentum
     :return: The angular momentum for that grid point
     '''
+    print("Velocity squared")
+    print(velocity_squared(g=g, mass_star=mass_star, big_h=big_h(radius, r_nought, amplitude, polytropic_index),
+                           h=h, radius=radius, r_nought=r_nought, delta_r=delta_r, amplitude=amplitude,
+                           polytropic_index=polytropic_index, alpha=alpha, sigma_nought=sigma_nought))
     return radius * unit_mass(rof3n=rof3n, zof3n=rof3n, density=density) * math.sqrt(
-        velocity_squared(g=g, mass_star=mass_star, big_h=big_h(radius, r_nought, amplitude, polytropic_index), h=h, radius=radius, r_nought=r_nought, delta_r=delta_r, amplitude=amplitude, polytropic_index=polytropic_index, alpha=alpha, sigma_nought=sigma_nought))
+        velocity_squared(g=g, mass_star=mass_star, big_h=big_h(radius, r_nought, amplitude, polytropic_index),
+                         h=h, radius=radius, r_nought=r_nought, delta_r=delta_r, amplitude=amplitude,
+                         polytropic_index=polytropic_index, alpha=alpha, sigma_nought=sigma_nought))
     # return angular_velocity_1(radius, rof3n, z, zof3n, density, g, mass_star) * (radius * rof3n) * unit_mass(radius,
     #                                                                                                        rof3n,
     #                                                                                                       z,
