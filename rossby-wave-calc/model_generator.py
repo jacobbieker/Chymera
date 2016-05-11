@@ -36,8 +36,8 @@ amplitude and widthare set to r0= 1,A= 1.4 and ∆r= 0.05r0,
 
 # Scaling factors
 
-rof3n = 1.451282e-02
-zof3n = 1.451282e-02
+#rof3n = 1.451282e-02
+#zof3n = 1.451282e-02
 
 
 # RWI constants
@@ -64,6 +64,11 @@ lcd = -10
 # Abritraty numbers
 k = 2.77e28
 sigma_nought = 1
+# Size of AU (grid is 1 AU in size)
+au = 1.496e+13
+
+rof3n = au / r_size
+zof3n = au / z_size
 
 '''
 # Value of density_profile at r_nought
