@@ -394,6 +394,10 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
     :param type: Currently either 'RWI' for Rossby Wave Instability, anything else for general disk model
     :return: A model file for input into the CHYMERA computational fluid dynamics code to run
     """
+
+    # Normalization numbers
+
+    total_mass = 0.0
     jmax2 = jmax + 2
     jmax1 = jmax + 1
     if type == 'RWI':
@@ -432,6 +436,12 @@ def generate_fort_2(polytropic_index, jmax, kmax, jout, kout, log_central_densit
                 denny[row][column] = rho(amplitude, r, r_nought_scaled, delta_r, h, z,
                                          alpha,
                                          constants_array[0], jout, )
+                total_mass += denny[row][column]
+
+        # Normalize the mass to 1
+        for column in range(jmax2):
+            for row in range(jmax2):
+                denny[row][column] = denny[row][column] / total_mass
 
         # Get angular momentum array
         for column in range(jmax1):
