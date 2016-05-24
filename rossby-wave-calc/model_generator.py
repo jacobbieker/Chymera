@@ -49,8 +49,8 @@ alpha = 0.5
 # Constants taken from papers, etc.
 h = 0.14
 polytropic_index = 1.5
-g = 1
-mass_star = 1
+g = 1.0
+mass_star = 1.0
 r_size = 256
 z_size = 256
 jout = 0.4 * r_nought
@@ -62,10 +62,10 @@ iteration = 50
 lcd = -10
 
 # Abritraty numbers
-k = 2.77e28
-sigma_nought = 1
+k = 1.0 # 2.77e28
+sigma_nought = 1.0
 # Size of AU (grid is 1 AU in size)
-au = 1.496e+13
+au = 1.0 # 1.496e+13
 
 rof3n = au / r_size
 zof3n = au / z_size
