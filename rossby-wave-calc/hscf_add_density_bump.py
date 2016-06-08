@@ -7,7 +7,7 @@ import math
 from fortranformat import FortranRecordWriter, FortranRecordReader
 
 r_nought = 100
-percent_change = 1.1
+percent_change = 10000000.01
 jmax2 = 258
 jmax1 = 257
 
@@ -40,7 +40,10 @@ with open("fort.93", "r") as inputFile:
             else:
                 if break_count == 0:
                     half_point = int(len(writing_array) / 2)
+                    while writing_array[half_point] == 0.0:
+                        half_point -= 1
                     print(half_point)
+                    print(writing_array[half_point])
                     print(len(writing_array))
                     writing_array[half_point] = writing_array[half_point] * percent_change
                 with open("fort.2", "a") as outfile:
