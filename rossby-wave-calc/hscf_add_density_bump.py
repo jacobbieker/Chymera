@@ -7,7 +7,7 @@ import math
 from fortranformat import FortranRecordWriter, FortranRecordReader
 
 r_nought = 100
-percent_change = 10000000.01
+percent_change = 1.05
 jmax2 = 258
 jmax1 = 257
 
@@ -33,6 +33,12 @@ with open("fort.93", "r") as inputFile:
         temp_array.append(temp)
     writing_array = []
     break_count = 0
+    total_mass = 0.0
+    for index, element in enumerate(temp_array):
+        for j, item in enumerate(element):
+            while temp_array[index][j] != None:
+                total_mass += temp_array[index][j]
+
     for index, element in enumerate(temp_array):
         for j, item in enumerate(element):
             if temp_array[index][j] != None:
@@ -45,7 +51,7 @@ with open("fort.93", "r") as inputFile:
                     print(half_point)
                     print(writing_array[half_point])
                     print(len(writing_array))
-                    writing_array[half_point] = writing_array[half_point] * percent_change
+                    writing_array[half_point] = writing_array[half_point] + (percent_change * total_mass)
                 with open("fort.2", "a") as outfile:
                     fortran_writer = FortranRecordWriter('8(1PE10.3,2X)')
                     output_text = fortran_writer.write(writing_array)

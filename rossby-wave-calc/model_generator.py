@@ -65,7 +65,7 @@ lcd = -10
 k = 1.0 # 2.77e28
 sigma_nought = 1.0
 # Size of AU (grid is 1 AU in size)
-au = 1.0 # 1.496e+13
+au = 256.0 # 1.496e+13
 
 rof3n = au / r_size
 zof3n = au / z_size
