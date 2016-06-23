@@ -548,12 +548,21 @@ C.............................................C
 C.....COMPLETED ONE TIME STEP INTEGRATION.....C
 C.............................................C
 
+C.............................................C
+C.....ADD EXTRA MASS FOR ROSSBY WAVE..........C
+C.............................................C
 
+            DO L=1,LMAX
+               DO K=1,KMAX2
+                  IF(RHO(100,K,L).gr.0)
+                     RHO(100,K,L)=0.5*RHO(100,K,L)
+               ENDDO
+            ENDDO
 
 
 C...Written Output for result file...
 c....Slices in j,k,l.................
-
+nan
           IF(MOD(ITSTEP,IDIAG).eq.0) then
          WRITE(3,10200) ITSTEP,TIME                                    !dkb
 10200    FORMAT(//,' --------------------------------------  ',           !dkb
