@@ -554,8 +554,8 @@ C.............................................C
 
             DO L=1,LMAX
                DO K=1,KMAX2
-                  IF(RHO(100,K,L).gr.0)
-                     RHO(100,K,L)=0.5*RHO(100,K,L)
+                  IF(RHO(103,K,L).gr.0)
+                     RHO(103,K,L)=2*RHO(103,K,L)
                ENDDO
             ENDDO
 
